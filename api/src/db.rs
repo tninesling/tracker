@@ -1,15 +1,13 @@
-use rusqlite::params;
+use rusqlite::{params, Error};
 use std::collections::HashMap;
+use uuid::Uuid;
 
 use crate::models::{Exercise, Workout};
 
 pub type Pool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 pub type Connection = r2d2::PooledConnection<r2d2_sqlite::SqliteConnectionManager>;
 
-pub fn create_workout(
-    conn: Connection,
-    workout: &mut Workout,
-) -> Result<&Workout, rusqlite::Error> {
+pub fn create_workout(conn: Connection, workout: &mut Workout) -> Result<&Workout, Error> {
     conn.execute(
         "INSERT INTO workouts (public_id, date) VALUES (?, ?)",
         params![workout.public_id, workout.date],
@@ -28,7 +26,13 @@ pub fn create_workout(
     Ok(workout)
 }
 
-pub fn get_all_workouts(conn: Connection) -> Result<Vec<Workout>, rusqlite::Error> {
+pub fn delete_workout(conn: Connection, public_id: Uuid) -> Result<bool, Error> {
+    conn.prepare("DELETE FROM workouts WHERE public_id = ?")?
+        .execute(params![public_id])
+        .map(|affected_rows| affected_rows > 0)
+}
+
+pub fn get_all_workouts(conn: Connection) -> Result<Vec<Workout>, Error> {
     let exercises: Vec<Exercise> = conn
         .prepare("SELECT id, public_id, name, reps, sets, weight_kg, workouts_id FROM exercises")?
         .query_map([], |row| {

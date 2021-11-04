@@ -1,8 +1,9 @@
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{delete, get, post, web, App, HttpResponse, HttpServer, Responder};
 use env_logger::Env;
 use r2d2_sqlite::{self, SqliteConnectionManager};
+use uuid::Uuid;
 
 use api::db::Pool;
 
@@ -22,6 +23,7 @@ async fn main() -> std::io::Result<()> {
             .service(status)
             .service(create_workout)
             .service(get_all_workouts)
+            .service(delete_workout)
     })
     .bind("127.0.0.1:8080")?
     .run()
@@ -52,6 +54,19 @@ async fn get_all_workouts(db_pool: web::Data<Pool>) -> impl Responder {
 
     match api::get_all_workouts(conn) {
         Ok(workouts) => HttpResponse::Ok().json(workouts),
+        Err(e) => e.into(),
+    }
+}
+
+#[delete("/workouts/{public_id}")]
+async fn delete_workout(db_pool: web::Data<Pool>, path: web::Path<String>) -> impl Responder {
+    let conn = db_pool.get().unwrap();
+
+    match Uuid::parse_str(&path.0)
+        .map_err(api::Error::UuidParseError)
+        .and_then(|uuid| api::delete_workout(conn, uuid))
+    {
+        Ok(_) => HttpResponse::Ok().body(""),
         Err(e) => e.into(),
     }
 }
