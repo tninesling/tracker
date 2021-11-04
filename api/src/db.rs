@@ -1,17 +1,18 @@
-use chrono::prelude::{DateTime, NaiveDateTime, Utc};
 use rusqlite::params;
 use std::collections::HashMap;
-use uuid::Uuid;
 
 use crate::models::{Exercise, Workout};
 
 pub type Pool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 pub type Connection = r2d2::PooledConnection<r2d2_sqlite::SqliteConnectionManager>;
 
-pub fn create_workout(conn: Connection, workout: &mut Workout) -> Result<(), rusqlite::Error> {
+pub fn create_workout(
+    conn: Connection,
+    workout: &mut Workout,
+) -> Result<&Workout, rusqlite::Error> {
     conn.execute(
-        "INSERT INTO workouts (public_id, date) VALUES (?)",
-        params![Uuid::new_v4(), workout.date],
+        "INSERT INTO workouts (public_id, date) VALUES (?, ?)",
+        params![workout.public_id, workout.date],
     )?;
 
     workout.id = conn.last_insert_rowid();
@@ -19,12 +20,12 @@ pub fn create_workout(conn: Connection, workout: &mut Workout) -> Result<(), rus
     for ex in &mut workout.exercises {
         ex.workouts_id = workout.id;
         conn.execute(
-      "INSERT INTO exercises (public_id, name, reps, sets, weight_kg, workouts_id) VALUES (?, ?, ?, ?, ?)",
-      params![Uuid::new_v4(), ex.name, ex.reps, ex.sets, ex.weight_kg, ex.workouts_id],
+      "INSERT INTO exercises (public_id, name, reps, sets, weight_kg, workouts_id) VALUES (?, ?, ?, ?, ?, ?)",
+      params![ex.public_id, ex.name, ex.reps, ex.sets, ex.weight_kg, ex.workouts_id],
     )?;
     }
 
-    Ok(())
+    Ok(workout)
 }
 
 pub fn get_all_workouts(conn: Connection) -> Result<Vec<Workout>, rusqlite::Error> {
@@ -55,14 +56,12 @@ pub fn get_all_workouts(conn: Connection) -> Result<Vec<Workout>, rusqlite::Erro
     conn.prepare("SELECT id, public_id, date FROM workouts")?
         .query_map([], |row| {
             let id = row.get(0)?;
-            let public_id = row.get(1)?;
-            let date_ts = row.get(2)?;
             let exs = exercises_by_workout.remove(&id).unwrap_or(Vec::new());
 
             Ok(Workout {
                 id,
-                public_id,
-                date: DateTime::from_utc(NaiveDateTime::from_timestamp(date_ts, 0), Utc),
+                public_id: row.get(1)?,
+                date: row.get(2)?,
                 exercises: exs,
             })
         })

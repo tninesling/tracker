@@ -1,19 +1,15 @@
 pub mod db;
+pub mod errors;
 pub mod models;
+
 use db::Connection;
+use errors::Error;
 pub use models::Workout;
 
-pub enum Error {
-    DBError,
-}
-
 pub fn create_workout(conn: Connection, workout: &mut Workout) -> Result<&Workout, Error> {
-    match db::create_workout(conn, workout) {
-        Ok(_) => Ok(workout),
-        Err(_) => Err(Error::DBError),
-    }
+    db::create_workout(conn, workout).map_err(|e| Error::DBError(e))
 }
 
 pub fn get_all_workouts(conn: Connection) -> Result<Vec<Workout>, Error> {
-    db::get_all_workouts(conn).map_err(|_| Error::DBError)
+    db::get_all_workouts(conn).map_err(|e| Error::DBError(e))
 }

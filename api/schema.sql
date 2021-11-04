@@ -1,12 +1,12 @@
 CREATE TABLE IF NOT EXISTS workouts(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  public_id TEXT,
+  public_id BLOB,
   date INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS exercises(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  public_id TEXT,
+  public_id BLOB,
   name TEXT,
   reps INTEGER,
   sets INTEGER,

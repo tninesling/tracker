@@ -42,7 +42,7 @@ async fn create_workout(
 
     match api::create_workout(conn, &mut workout.into_inner()) {
         Ok(workout) => HttpResponse::Created().json(workout),
-        Err(_) => HttpResponse::UnprocessableEntity().body(""),
+        Err(e) => e.into(),
     }
 }
 
@@ -52,6 +52,6 @@ async fn get_all_workouts(db_pool: web::Data<Pool>) -> impl Responder {
 
     match api::get_all_workouts(conn) {
         Ok(workouts) => HttpResponse::Ok().json(workouts),
-        Err(_) => HttpResponse::UnprocessableEntity().body(""),
+        Err(e) => e.into(),
     }
 }
