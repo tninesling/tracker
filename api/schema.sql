@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS workouts(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  public_id TEXT,
+  date INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS exercises(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  public_id TEXT,
+  name TEXT,
+  reps INTEGER,
+  sets INTEGER,
+  weight_kg REAL,
+  workouts_id REFERENCES workouts(id) ON DELETE CASCADE
+);
