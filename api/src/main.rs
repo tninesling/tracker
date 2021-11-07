@@ -23,6 +23,7 @@ async fn main() -> std::io::Result<()> {
             .service(status)
             .service(create_workout)
             .service(get_all_workouts)
+            .service(get_workout_summaries)
             .service(delete_workout)
     })
     .bind("127.0.0.1:8080")?
@@ -54,6 +55,16 @@ async fn get_all_workouts(db_pool: web::Data<Pool>) -> impl Responder {
 
     match api::get_all_workouts(conn) {
         Ok(workouts) => HttpResponse::Ok().json(workouts),
+        Err(e) => e.into(),
+    }
+}
+
+#[get("/workouts/summaries")]
+async fn get_workout_summaries(db_pool: web::Data<Pool>) -> impl Responder {
+    let conn = db_pool.get().unwrap();
+
+    match api::summarize_workouts(conn) {
+        Ok(summaries) => HttpResponse::Ok().json(summaries),
         Err(e) => e.into(),
     }
 }

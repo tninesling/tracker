@@ -4,17 +4,6 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Workout {
-    #[serde(skip)]
-    pub id: i64,
-    #[serde(default = "Uuid::new_v4")]
-    pub public_id: Uuid,
-    pub date: DateTime<Utc>,
-    pub exercises: Vec<Exercise>,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Exercise {
     #[serde(skip)]
     pub id: i64,
@@ -26,4 +15,23 @@ pub struct Exercise {
     pub weight_kg: f64,
     #[serde(skip)]
     pub workouts_id: i64,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Workout {
+    #[serde(skip)]
+    pub id: i64,
+    #[serde(default = "Uuid::new_v4")]
+    pub public_id: Uuid,
+    pub date: DateTime<Utc>,
+    pub exercises: Vec<Exercise>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkoutSummary {
+    pub start_date: DateTime<Utc>,
+    pub end_date: DateTime<Utc>,
+    pub total_weight_kg: f64,
 }
