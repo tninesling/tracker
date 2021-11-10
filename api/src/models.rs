@@ -87,7 +87,7 @@ pub struct Ingredient {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Recipe {
+pub struct Meal {
     #[serde(skip)]
     pub id: i64,
     #[serde(default = "Uuid::new_v4")]

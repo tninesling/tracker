@@ -6,7 +6,7 @@ use chrono::Timelike;
 
 use db::Connection;
 pub use errors::Error;
-pub use models::{Ingredient, Recipe, Workout, WorkoutSummary};
+pub use models::{Ingredient, Meal, Workout, WorkoutSummary};
 
 pub fn create_workout(conn: Connection, workout: &mut Workout) -> Result<&Workout, Error> {
     db::create_workout(conn, workout).map_err(|e| Error::DBError(e))
@@ -76,10 +76,10 @@ pub fn get_all_ingredients(conn: Connection) -> Result<Vec<Ingredient>, Error> {
     db::get_all_ingredients(conn).map_err(Error::DBError)
 }
 
-pub fn create_recipe(conn: Connection, recipe: &Recipe) -> Result<(), Error> {
-    db::create_recipe(conn, recipe).map_err(Error::DBError)
+pub fn create_meal(conn: Connection, meal: &Meal) -> Result<(), Error> {
+    db::create_meal(conn, meal).map_err(Error::DBError)
 }
 
-pub fn get_all_recipes(conn: Connection) -> Result<Vec<Recipe>, Error> {
-    db::get_all_recipes(conn).map_err(Error::DBError)
+pub fn get_all_meals(conn: Connection) -> Result<Vec<Meal>, Error> {
+    db::get_all_meals(conn).map_err(Error::DBError)
 }

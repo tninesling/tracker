@@ -27,8 +27,8 @@ async fn main() -> std::io::Result<()> {
             .service(delete_workout)
             .service(create_ingredient)
             .service(get_all_ingredients)
-            .service(create_recipe)
-            .service(get_all_recipes)
+            .service(create_meal)
+            .service(get_all_meals)
     })
     .bind("127.0.0.1:8080")?
     .run()
@@ -109,21 +109,21 @@ async fn create_ingredient(
     }
 }
 
-#[get("/recipes")]
-async fn get_all_recipes(db_pool: web::Data<Pool>) -> impl Responder {
+#[get("/meals")]
+async fn get_all_meals(db_pool: web::Data<Pool>) -> impl Responder {
     let conn = db_pool.get().unwrap();
 
-    match api::get_all_recipes(conn) {
-        Ok(recipes) => HttpResponse::Ok().json(recipes),
+    match api::get_all_meals(conn) {
+        Ok(meals) => HttpResponse::Ok().json(meals),
         Err(e) => e.into(),
     }
 }
 
-#[post("/recipes")]
-async fn create_recipe(db_pool: web::Data<Pool>, recipe: web::Json<api::Recipe>) -> impl Responder {
+#[post("/meals")]
+async fn create_meal(db_pool: web::Data<Pool>, meal: web::Json<api::Meal>) -> impl Responder {
     let conn = db_pool.get().unwrap();
 
-    match api::create_recipe(conn, &recipe) {
+    match api::create_meal(conn, &meal) {
         Ok(_) => HttpResponse::Ok().body(""),
         Err(e) => e.into(),
     }

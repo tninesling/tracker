@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS exercises(
   workouts_id REFERENCES workouts(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS recipes(
+CREATE TABLE IF NOT EXISTS meals(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   public_id BLOB,
   date INTEGER
@@ -44,9 +44,9 @@ CREATE TABLE IF NOT EXISTS ingredients(
   iron_mg REAL
 );
 
-CREATE TABLE IF NOT EXISTS recipes_ingredients(
-  recipes_id REFERENCES recipes(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS meals_ingredients(
+  meals_id REFERENCES meals(id) ON DELETE CASCADE,
   ingredients_id REFERENCES ingredients(id) ON DELETE CASCADE,
   num_servings REAL,
-  PRIMARY KEY (recipes_id, ingredients_id)
+  PRIMARY KEY (meals_id, ingredients_id)
 );

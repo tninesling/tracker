@@ -18,7 +18,7 @@ An app for managing physical, mental, and financial maintenance and progress.
 
 ### Diet
 
-- Ingredients & Recipe CRUD
+- Ingredients & Meal CRUD
   - Calories, Macros & Micros
   - Amounts (mg, ml)
 
@@ -26,5 +26,5 @@ An app for managing physical, mental, and financial maintenance and progress.
   - Today's macros/micros
   - Total macros/micros per day
 
-- Recommend 1 week of recipes
+- Recommend 1 week of meals
   - Generate grocery list

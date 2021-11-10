@@ -2,7 +2,7 @@ use rusqlite::{params, Error};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use crate::models::{Exercise, Ingredient, IngredientUnit, Recipe, Workout};
+use crate::models::{Exercise, Ingredient, IngredientUnit, Meal, Workout};
 
 pub type Pool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 pub type Connection = r2d2::PooledConnection<r2d2_sqlite::SqliteConnectionManager>;
@@ -186,53 +186,53 @@ pub fn get_all_ingredients(conn: Connection) -> Result<Vec<Ingredient>, Error> {
     .and_then(Iterator::collect)
 }
 
-pub fn create_recipe(conn: Connection, recipe: &Recipe) -> Result<(), Error> {
+pub fn create_meal(conn: Connection, meal: &Meal) -> Result<(), Error> {
     conn.execute(
-        "INSERT INTO recipes (public_id, date) VALUES (?, ?)",
-        params![recipe.public_id, recipe.date],
+        "INSERT INTO meals (public_id, date) VALUES (?, ?)",
+        params![meal.public_id, meal.date],
     )?;
 
-    let recipe_id = conn.last_insert_rowid();
+    let meal_id = conn.last_insert_rowid();
 
-    for (ingredient_key, num_servings) in recipe.ingredient_servings.iter() {
+    for (ingredient_key, num_servings) in meal.ingredient_servings.iter() {
         conn.execute(
-            "INSERT INTO recipes_ingredients (recipes_id, ingredients_id, num_servings)
+            "INSERT INTO meals_ingredients (meals_id, ingredients_id, num_servings)
             SELECT ?, id, ? FROM ingredients WHERE public_id = ?",
-            params![recipe_id, num_servings, ingredient_key],
+            params![meal_id, num_servings, ingredient_key],
         )?;
     }
 
     Ok(())
 }
 
-pub fn get_all_recipes(conn: Connection) -> Result<Vec<Recipe>, Error> {
-    let mut ingredient_amounts_by_recipe: HashMap<i64, HashMap<Uuid, f64>> = HashMap::new();
+pub fn get_all_meals(conn: Connection) -> Result<Vec<Meal>, Error> {
+    let mut ingredient_amounts_by_meal: HashMap<i64, HashMap<Uuid, f64>> = HashMap::new();
     let ingredient_amounts: Vec<(i64, Uuid, f64)> = conn.prepare(
-        "SELECT m.recipes_id, i.public_id, m.num_servings FROM recipes_ingredients m JOIN ingredients i ON m.ingredients_id = i.id"
+        "SELECT m.meals_id, i.public_id, m.num_servings FROM meals_ingredients m JOIN ingredients i ON m.ingredients_id = i.id"
     )?.query_map([], |row| {
-            let recipes_id: i64 = row.get(0)?;
+            let meals_id: i64 = row.get(0)?;
             let ingredients_public_id: Uuid = row.get(1)?;
             let num_servings: f64 = row.get(2)?;
 
-            Ok((recipes_id, ingredients_public_id, num_servings))
+            Ok((meals_id, ingredients_public_id, num_servings))
         }).and_then(Iterator::collect)?;
 
-    for (recipes_id, ingredients_public_id, num_servings) in ingredient_amounts {
-        ingredient_amounts_by_recipe
-            .entry(recipes_id)
+    for (meals_id, ingredients_public_id, num_servings) in ingredient_amounts {
+        ingredient_amounts_by_meal
+            .entry(meals_id)
             .or_insert_with(HashMap::new)
             .insert(ingredients_public_id, num_servings);
     }
 
-    conn.prepare("SELECT id, public_id, date FROM recipes")?
+    conn.prepare("SELECT id, public_id, date FROM meals")?
         .query_map([], |row| {
             let id = row.get(0)?;
 
-            Ok(Recipe {
+            Ok(Meal {
                 id,
                 public_id: row.get(1)?,
                 date: row.get(2)?,
-                ingredient_servings: ingredient_amounts_by_recipe
+                ingredient_servings: ingredient_amounts_by_meal
                     .remove(&id)
                     .unwrap_or(HashMap::new()),
             })
