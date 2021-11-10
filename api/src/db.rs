@@ -186,21 +186,25 @@ pub fn get_all_ingredients(conn: Connection) -> Result<Vec<Ingredient>, Error> {
     .and_then(Iterator::collect)
 }
 
-pub fn create_meal(conn: Connection, meal: &Meal) -> Result<(), Error> {
-    conn.execute(
+pub fn create_meal(conn: &mut Connection, meal: &Meal) -> Result<(), Error> {
+    let tx = conn.transaction()?;
+
+    tx.execute(
         "INSERT INTO meals (public_id, date) VALUES (?, ?)",
         params![meal.public_id, meal.date],
     )?;
 
-    let meal_id = conn.last_insert_rowid();
+    let meal_id = tx.last_insert_rowid();
 
     for (ingredient_key, num_servings) in meal.ingredient_servings.iter() {
-        conn.execute(
+        tx.execute(
             "INSERT INTO meals_ingredients (meals_id, ingredients_id, num_servings)
             SELECT ?, id, ? FROM ingredients WHERE public_id = ?",
             params![meal_id, num_servings, ingredient_key],
         )?;
     }
+
+    tx.commit()?;
 
     Ok(())
 }

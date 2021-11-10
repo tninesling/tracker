@@ -76,7 +76,7 @@ pub fn get_all_ingredients(conn: Connection) -> Result<Vec<Ingredient>, Error> {
     db::get_all_ingredients(conn).map_err(Error::DBError)
 }
 
-pub fn create_meal(conn: Connection, meal: &Meal) -> Result<(), Error> {
+pub fn create_meal(conn: &mut Connection, meal: &Meal) -> Result<(), Error> {
     db::create_meal(conn, meal).map_err(Error::DBError)
 }
 

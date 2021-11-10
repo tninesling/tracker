@@ -121,9 +121,9 @@ async fn get_all_meals(db_pool: web::Data<Pool>) -> impl Responder {
 
 #[post("/meals")]
 async fn create_meal(db_pool: web::Data<Pool>, meal: web::Json<api::Meal>) -> impl Responder {
-    let conn = db_pool.get().unwrap();
+    let mut conn = db_pool.get().unwrap();
 
-    match api::create_meal(conn, &meal) {
+    match api::create_meal(&mut conn, &meal) {
         Ok(_) => HttpResponse::Ok().body(""),
         Err(e) => e.into(),
     }
