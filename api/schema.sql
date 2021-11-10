@@ -13,3 +13,40 @@ CREATE TABLE IF NOT EXISTS exercises(
   weight_kg REAL,
   workouts_id REFERENCES workouts(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS recipes(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  public_id BLOB,
+  date INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS ingredients(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  public_id BLOB,
+  name TEXT,
+  serving_size REAL,
+  serving_unit TEXT,
+  calories REAL,
+  carbohydrates_mg REAL,
+  fat_mg REAL,
+  protein_mg REAL,
+  saturated_fat_mg REAL,
+  polyunsaturated_fat_mg REAL,
+  monounsaturated_fat_mg REAL,
+  trans_fat_mg REAL,
+  fiber_mg REAL,
+  sugar_mg REAL,
+  added_sugar_mg REAL,
+  cholesterol_mg REAL,
+  sodium_mg REAL,
+  potassium_mg REAL,
+  calcium_mg REAL,
+  iron_mg REAL
+);
+
+CREATE TABLE IF NOT EXISTS recipes_ingredients(
+  recipes_id REFERENCES recipes(id) ON DELETE CASCADE,
+  ingredients_id REFERENCES ingredients(id) ON DELETE CASCADE,
+  num_servings REAL,
+  PRIMARY KEY (recipes_id, ingredients_id)
+);

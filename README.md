@@ -15,3 +15,16 @@ An app for managing physical, mental, and financial maintenance and progress.
 
 - Summarize workouts
   - Total weight per day
+
+### Diet
+
+- Ingredients & Recipe CRUD
+  - Calories, Macros & Micros
+  - Amounts (mg, ml)
+
+- Summarize diet
+  - Today's macros/micros
+  - Total macros/micros per day
+
+- Recommend 1 week of recipes
+  - Generate grocery list

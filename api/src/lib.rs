@@ -6,7 +6,7 @@ use chrono::Timelike;
 
 use db::Connection;
 pub use errors::Error;
-pub use models::{Workout, WorkoutSummary};
+pub use models::{Ingredient, Recipe, Workout, WorkoutSummary};
 
 pub fn create_workout(conn: Connection, workout: &mut Workout) -> Result<&Workout, Error> {
     db::create_workout(conn, workout).map_err(|e| Error::DBError(e))
@@ -29,18 +29,19 @@ pub fn get_all_workouts(conn: Connection) -> Result<Vec<Workout>, Error> {
 }
 
 pub fn summarize_workouts(conn: Connection) -> Result<Vec<WorkoutSummary>, Error> {
-    get_all_workouts(conn).map(|workouts| workouts.iter().map(summarize_workout).collect())
-}
-
-fn summarize_workout(workout: &Workout) -> WorkoutSummary {
-    WorkoutSummary {
-        start_date: beginning_of_day(workout.date),
-        end_date: end_of_day(workout.date),
-        total_weight_kg: workout
-            .exercises
+    get_all_workouts(conn).map(|workouts| {
+        workouts
             .iter()
-            .fold(0.0, |acc, e| acc + e.weight_kg),
-    }
+            .map(|workout| WorkoutSummary {
+                start_date: beginning_of_day(workout.date),
+                end_date: end_of_day(workout.date),
+                total_weight_kg: workout
+                    .exercises
+                    .iter()
+                    .fold(0.0, |acc, e| acc + e.weight_kg),
+            })
+            .collect()
+    })
 }
 
 fn beginning_of_day<T: Timelike>(time_like: T) -> T {
@@ -65,4 +66,20 @@ fn end_of_day<T: Timelike>(time_like: T) -> T {
         .unwrap()
         .with_nanosecond(999999999)
         .unwrap()
+}
+
+pub fn create_ingredient(conn: Connection, ingredient: &Ingredient) -> Result<(), Error> {
+    db::create_ingredient(conn, ingredient).map_err(Error::DBError)
+}
+
+pub fn get_all_ingredients(conn: Connection) -> Result<Vec<Ingredient>, Error> {
+    db::get_all_ingredients(conn).map_err(Error::DBError)
+}
+
+pub fn create_recipe(conn: Connection, recipe: &Recipe) -> Result<(), Error> {
+    db::create_recipe(conn, recipe).map_err(Error::DBError)
+}
+
+pub fn get_all_recipes(conn: Connection) -> Result<Vec<Recipe>, Error> {
+    db::get_all_recipes(conn).map_err(Error::DBError)
 }
