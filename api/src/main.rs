@@ -29,6 +29,8 @@ async fn main() -> std::io::Result<()> {
             .service(get_all_ingredients)
             .service(create_meal)
             .service(get_all_meals)
+            .service(get_meal_summaries)
+            .service(get_todays_meal_summary)
     })
     .bind("127.0.0.1:8080")?
     .run()
@@ -47,7 +49,7 @@ async fn create_workout(
 ) -> impl Responder {
     let conn = db_pool.get().unwrap();
 
-    match api::create_workout(conn, &mut workout.into_inner()) {
+    match api::create_workout(&conn, &mut workout.into_inner()) {
         Ok(workout) => HttpResponse::Created().json(workout),
         Err(e) => e.into(),
     }
@@ -57,7 +59,7 @@ async fn create_workout(
 async fn get_all_workouts(db_pool: web::Data<Pool>) -> impl Responder {
     let conn = db_pool.get().unwrap();
 
-    match api::get_all_workouts(conn) {
+    match api::get_all_workouts(&conn) {
         Ok(workouts) => HttpResponse::Ok().json(workouts),
         Err(e) => e.into(),
     }
@@ -67,7 +69,7 @@ async fn get_all_workouts(db_pool: web::Data<Pool>) -> impl Responder {
 async fn get_workout_summaries(db_pool: web::Data<Pool>) -> impl Responder {
     let conn = db_pool.get().unwrap();
 
-    match api::summarize_workouts(conn) {
+    match api::summarize_workouts(&conn) {
         Ok(summaries) => HttpResponse::Ok().json(summaries),
         Err(e) => e.into(),
     }
@@ -79,7 +81,7 @@ async fn delete_workout(db_pool: web::Data<Pool>, path: web::Path<String>) -> im
 
     match Uuid::parse_str(&path.0)
         .map_err(api::Error::UuidParseError)
-        .and_then(|uuid| api::delete_workout(conn, uuid))
+        .and_then(|uuid| api::delete_workout(&conn, uuid))
     {
         Ok(_) => HttpResponse::Ok().body(""),
         Err(e) => e.into(),
@@ -90,7 +92,7 @@ async fn delete_workout(db_pool: web::Data<Pool>, path: web::Path<String>) -> im
 async fn get_all_ingredients(db_pool: web::Data<Pool>) -> impl Responder {
     let conn = db_pool.get().unwrap();
 
-    match api::get_all_ingredients(conn) {
+    match api::get_all_ingredients(&conn) {
         Ok(ingredients) => HttpResponse::Ok().json(ingredients),
         Err(e) => e.into(),
     }
@@ -103,7 +105,7 @@ async fn create_ingredient(
 ) -> impl Responder {
     let conn = db_pool.get().unwrap();
 
-    match api::create_ingredient(conn, &ingredient.into_inner()) {
+    match api::create_ingredient(&conn, &ingredient.into_inner()) {
         Ok(_) => HttpResponse::Ok().body(""),
         Err(e) => e.into(),
     }
@@ -113,7 +115,7 @@ async fn create_ingredient(
 async fn get_all_meals(db_pool: web::Data<Pool>) -> impl Responder {
     let conn = db_pool.get().unwrap();
 
-    match api::get_all_meals(conn) {
+    match api::get_all_meals(&conn) {
         Ok(meals) => HttpResponse::Ok().json(meals),
         Err(e) => e.into(),
     }
@@ -125,6 +127,26 @@ async fn create_meal(db_pool: web::Data<Pool>, meal: web::Json<api::Meal>) -> im
 
     match api::create_meal(&mut conn, &meal) {
         Ok(_) => HttpResponse::Ok().body(""),
+        Err(e) => e.into(),
+    }
+}
+
+#[get("/meals/summaries")]
+async fn get_meal_summaries(db_pool: web::Data<Pool>) -> impl Responder {
+    let conn = db_pool.get().unwrap();
+
+    match api::summarize_meals(&conn) {
+        Ok(summaries) => HttpResponse::Ok().json(summaries),
+        Err(e) => e.into(),
+    }
+}
+
+#[get("/meals/summaries/today")]
+async fn get_todays_meal_summary(db_pool: web::Data<Pool>) -> impl Responder {
+    let conn = db_pool.get().unwrap();
+
+    match api::summarize_todays_meals(&conn) {
+        Ok(summary) => HttpResponse::Ok().json(summary),
         Err(e) => e.into(),
     }
 }

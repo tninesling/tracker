@@ -1,7 +1,8 @@
 use chrono::prelude::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use uuid::Uuid;
+
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -94,4 +95,43 @@ pub struct Meal {
     pub public_id: Uuid,
     pub date: DateTime<Utc>,
     pub ingredient_servings: HashMap<Uuid, f64>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MealSummary {
+    pub start_date: DateTime<Utc>,
+    pub end_date: DateTime<Utc>,
+    pub calories: f64,
+    pub carbohydrates_mg: f64,
+    pub fat_mg: f64,
+    pub protein_mg: f64,
+}
+
+impl MealSummary {
+    pub fn new() -> MealSummary {
+        MealSummary {
+            start_date: Utc::now(),
+            end_date: Utc::now(),
+            calories: 0.0,
+            carbohydrates_mg: 0.0,
+            fat_mg: 0.0,
+            protein_mg: 0.0,
+        }
+    }
+}
+
+impl std::ops::Add<&MealSummary> for MealSummary {
+    type Output = MealSummary;
+
+    fn add(self, other: &MealSummary) -> MealSummary {
+        MealSummary {
+            start_date: Ord::min(self.start_date, other.start_date),
+            end_date: Ord::max(self.end_date, other.end_date),
+            calories: self.calories + other.calories,
+            carbohydrates_mg: self.carbohydrates_mg + other.carbohydrates_mg,
+            fat_mg: self.fat_mg + other.fat_mg,
+            protein_mg: self.protein_mg + other.protein_mg,
+        }
+    }
 }

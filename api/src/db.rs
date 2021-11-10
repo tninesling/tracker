@@ -7,7 +7,10 @@ use crate::models::{Exercise, Ingredient, IngredientUnit, Meal, Workout};
 pub type Pool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 pub type Connection = r2d2::PooledConnection<r2d2_sqlite::SqliteConnectionManager>;
 
-pub fn create_workout(conn: Connection, workout: &mut Workout) -> Result<&Workout, Error> {
+pub fn create_workout<'a, 'b>(
+    conn: &'a Connection,
+    workout: &'b mut Workout,
+) -> Result<&'b Workout, Error> {
     conn.execute(
         "INSERT INTO workouts (public_id, date) VALUES (?, ?)",
         params![workout.public_id, workout.date],
@@ -26,13 +29,13 @@ pub fn create_workout(conn: Connection, workout: &mut Workout) -> Result<&Workou
     Ok(workout)
 }
 
-pub fn delete_workout(conn: Connection, public_id: Uuid) -> Result<bool, Error> {
+pub fn delete_workout(conn: &Connection, public_id: Uuid) -> Result<bool, Error> {
     conn.prepare("DELETE FROM workouts WHERE public_id = ?")?
         .execute(params![public_id])
         .map(|affected_rows| affected_rows > 0)
 }
 
-pub fn get_all_workouts(conn: Connection) -> Result<Vec<Workout>, Error> {
+pub fn get_all_workouts(conn: &Connection) -> Result<Vec<Workout>, Error> {
     let exercises: Vec<Exercise> = conn
         .prepare("SELECT id, public_id, name, reps, sets, weight_kg, workouts_id FROM exercises")?
         .query_map([], |row| {
@@ -72,7 +75,7 @@ pub fn get_all_workouts(conn: Connection) -> Result<Vec<Workout>, Error> {
         .and_then(Iterator::collect)
 }
 
-pub fn create_ingredient(conn: Connection, ingredient: &Ingredient) -> Result<(), Error> {
+pub fn create_ingredient(conn: &Connection, ingredient: &Ingredient) -> Result<(), Error> {
     conn.execute(
         "INSERT INTO ingredients (
             public_id,
@@ -126,7 +129,7 @@ pub fn create_ingredient(conn: Connection, ingredient: &Ingredient) -> Result<()
     Ok(())
 }
 
-pub fn get_all_ingredients(conn: Connection) -> Result<Vec<Ingredient>, Error> {
+pub fn get_all_ingredients(conn: &Connection) -> Result<Vec<Ingredient>, Error> {
     conn.prepare(
         "SELECT
         id,
@@ -209,7 +212,7 @@ pub fn create_meal(conn: &mut Connection, meal: &Meal) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn get_all_meals(conn: Connection) -> Result<Vec<Meal>, Error> {
+pub fn get_all_meals(conn: &Connection) -> Result<Vec<Meal>, Error> {
     let mut ingredient_amounts_by_meal: HashMap<i64, HashMap<Uuid, f64>> = HashMap::new();
     let ingredient_amounts: Vec<(i64, Uuid, f64)> = conn.prepare(
         "SELECT m.meals_id, i.public_id, m.num_servings FROM meals_ingredients m JOIN ingredients i ON m.ingredients_id = i.id"
@@ -242,4 +245,67 @@ pub fn get_all_meals(conn: Connection) -> Result<Vec<Meal>, Error> {
             })
         })
         .and_then(Iterator::collect)
+}
+
+pub fn get_ingredients_for_meal(conn: &Connection, meal: &Meal) -> Result<Vec<Ingredient>, Error> {
+    conn.prepare(
+        "SELECT
+        i.id,
+        i.public_id,
+        i.name,
+        i.serving_size,
+        i.serving_unit,
+        i.calories,
+        i.carbohydrates_mg,
+        i.fat_mg,
+        i.protein_mg,
+        i.saturated_fat_mg,
+        i.polyunsaturated_fat_mg,
+        i.monounsaturated_fat_mg,
+        i.trans_fat_mg,
+        i.fiber_mg,
+        i.sugar_mg,
+        i.added_sugar_mg,
+        i.cholesterol_mg,
+        i.sodium_mg,
+        i.potassium_mg,
+        i.calcium_mg,
+        i.iron_mg
+    FROM ingredients i
+    JOIN meals_ingredients mi
+    ON i.id = mi.ingredients_id
+    WHERE mi.meals_id = ?",
+    )?
+    .query_map(params![meal.id], |row| {
+        Ok(Ingredient {
+            id: row.get(0)?,
+            public_id: row.get(1)?,
+            name: row.get(2)?,
+            serving_size: row.get(3)?,
+            serving_unit: row.get::<_, String>(4).map(|val| {
+                if val == "mg" {
+                    IngredientUnit::Milligrams
+                } else {
+                    IngredientUnit::Milliliters
+                }
+            })?,
+            calories: row.get(5)?,
+            carbohydrates_mg: row.get(6)?,
+            fat_mg: row.get(7)?,
+            protein_mg: row.get(8)?,
+            saturated_fat_mg: row.get(9)?,
+            polyunsaturated_fat_mg: row.get(10)?,
+            monounsaturated_fat_mg: row.get(11)?,
+            trans_fat_mg: row.get(12)?,
+            fiber_mg: row.get(13)?,
+            sugar_mg: row.get(14)?,
+            added_sugar_mg: row.get(15)?,
+            cholesterol_mg: row.get(16)?,
+            sodium_mg: row.get(17)?,
+            potassium_mg: row.get(18)?,
+            calcium_mg: row.get(19)?,
+            iron_mg: row.get(20)?,
+        })
+    })
+    .and_then(Iterator::collect)
 }
