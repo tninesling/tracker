@@ -2,7 +2,7 @@ use rusqlite::{params, Error};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use crate::models::{Exercise, Ingredient, IngredientUnit, Meal, Workout};
+use crate::models::{Exercise, Ingredient, IngredientUnit, Meal, WeighIn, Workout};
 
 pub type Pool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 pub type Connection = r2d2::PooledConnection<r2d2_sqlite::SqliteConnectionManager>;
@@ -308,4 +308,25 @@ pub fn get_ingredients_for_meal(conn: &Connection, meal: &Meal) -> Result<Vec<In
         })
     })
     .and_then(Iterator::collect)
+}
+
+pub fn create_weigh_in(conn: &Connection, weigh_in: &WeighIn) -> Result<(), Error> {
+    conn.execute(
+        "INSERT INTO weigh_ins (date, weight_lbs) VALUES (?, ?)",
+        params![weigh_in.date, weigh_in.weight_lbs],
+    )?;
+
+    Ok(())
+}
+
+pub fn get_all_weigh_ins(conn: &Connection) -> Result<Vec<WeighIn>, Error> {
+    conn.prepare("SELECT id, date, weight_lbs FROM weigh_ins")?
+        .query_map([], |row| {
+            Ok(WeighIn {
+                id: row.get(0)?,
+                date: row.get(1)?,
+                weight_lbs: row.get(2)?,
+            })
+        })
+        .and_then(Iterator::collect)
 }

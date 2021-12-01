@@ -134,3 +134,11 @@ fn summarize_meal_ingredients(meal: &Meal, ingredients: Vec<Ingredient>) -> Meal
 
     summary
 }
+
+pub fn create_weigh_in(conn: &Connection, weigh_in: &WeighIn) -> Result<(), Error> {
+    db::create_weigh_in(conn, weigh_in).map_err(Error::DBError)
+}
+
+pub fn get_all_weigh_ins(conn: &Connection) -> Result<Vec<WeighIn>, Error> {
+    db::get_all_weigh_ins(conn).map_err(Error::DBError)
+}

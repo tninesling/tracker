@@ -135,3 +135,12 @@ impl std::ops::Add<&MealSummary> for MealSummary {
         }
     }
 }
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WeighIn {
+    #[serde(skip)]
+    pub id: i64,
+    pub date: DateTime<Utc>,
+    pub weight_lbs: f64,
+}

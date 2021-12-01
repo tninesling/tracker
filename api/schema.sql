@@ -50,3 +50,9 @@ CREATE TABLE IF NOT EXISTS meals_ingredients(
   num_servings REAL,
   PRIMARY KEY (meals_id, ingredients_id)
 );
+
+CREATE TABLE IF NOT EXISTS weigh_ins(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  date INTEGER,
+  weight_lbs REAL
+);

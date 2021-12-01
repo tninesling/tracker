@@ -31,6 +31,8 @@ async fn main() -> std::io::Result<()> {
             .service(get_all_meals)
             .service(get_meal_summaries)
             .service(get_todays_meal_summary)
+            .service(create_weigh_in)
+            .service(get_all_weigh_ins)
     })
     .bind("127.0.0.1:8080")?
     .run()
@@ -147,6 +149,29 @@ async fn get_todays_meal_summary(db_pool: web::Data<Pool>) -> impl Responder {
 
     match api::summarize_todays_meals(&conn) {
         Ok(summary) => HttpResponse::Ok().json(summary),
+        Err(e) => e.into(),
+    }
+}
+
+#[post("/weighins")]
+async fn create_weigh_in(
+    db_pool: web::Data<Pool>,
+    weigh_in: web::Json<api::WeighIn>,
+) -> impl Responder {
+    let conn = db_pool.get().unwrap();
+
+    match api::create_weigh_in(&conn, &weigh_in) {
+        Ok(_) => HttpResponse::Created().body(""),
+        Err(e) => e.into(),
+    }
+}
+
+#[get("/weighins")]
+async fn get_all_weigh_ins(db_pool: web::Data<Pool>) -> impl Responder {
+    let conn = db_pool.get().unwrap();
+
+    match api::get_all_weigh_ins(&conn) {
+        Ok(weigh_ins) => HttpResponse::Ok().json(weigh_ins),
         Err(e) => e.into(),
     }
 }
