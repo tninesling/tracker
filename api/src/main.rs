@@ -33,6 +33,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_todays_meal_summary)
             .service(create_weigh_in)
             .service(get_all_weigh_ins)
+            .service(get_todays_meal_targets)
     })
     .bind("127.0.0.1:8080")?
     .run()
@@ -149,6 +150,16 @@ async fn get_todays_meal_summary(db_pool: web::Data<Pool>) -> impl Responder {
 
     match api::summarize_todays_meals(&conn) {
         Ok(summary) => HttpResponse::Ok().json(summary),
+        Err(e) => e.into(),
+    }
+}
+
+#[get("/meals/targets/today")]
+async fn get_todays_meal_targets(db_pool: web::Data<Pool>) -> impl Responder {
+    let conn = db_pool.get().unwrap();
+
+    match api::get_macro_targets(&conn) {
+        Ok(targets) => HttpResponse::Ok().json(targets),
         Err(e) => e.into(),
     }
 }

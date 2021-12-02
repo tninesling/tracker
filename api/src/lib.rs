@@ -115,9 +115,9 @@ fn summarize_meal_ingredients(meal: &Meal, ingredients: Vec<Ingredient>) -> Meal
         start_date: meal.date,
         end_date: meal.date,
         calories: 0.0,
-        carbohydrates_mg: 0.0,
-        fat_mg: 0.0,
-        protein_mg: 0.0,
+        carbohydrates_g: 0.0,
+        fat_g: 0.0,
+        protein_g: 0.0,
     };
 
     for ingredient in ingredients {
@@ -127,9 +127,9 @@ fn summarize_meal_ingredients(meal: &Meal, ingredients: Vec<Ingredient>) -> Meal
             .unwrap_or(&0.0);
 
         summary.calories += num_servings * ingredient.calories;
-        summary.carbohydrates_mg += num_servings * ingredient.carbohydrates_mg;
-        summary.fat_mg += num_servings * ingredient.fat_mg;
-        summary.protein_mg += num_servings * ingredient.protein_mg;
+        summary.carbohydrates_g += num_servings * ingredient.carbohydrates_g;
+        summary.fat_g += num_servings * ingredient.fat_g;
+        summary.protein_g += num_servings * ingredient.protein_g;
     }
 
     summary
@@ -141,4 +141,37 @@ pub fn create_weigh_in(conn: &Connection, weigh_in: &WeighIn) -> Result<(), Erro
 
 pub fn get_all_weigh_ins(conn: &Connection) -> Result<Vec<WeighIn>, Error> {
     db::get_all_weigh_ins(conn).map_err(Error::DBError)
+}
+
+fn get_current_weight_lbs(conn: &Connection) -> Result<f64, Error> {
+    let mut weigh_ins = get_all_weigh_ins(conn)?;
+
+    weigh_ins.sort_by_key(|wi| wi.date);
+
+    match weigh_ins.pop() {
+        Some(weigh_in) => Ok(weigh_in.weight_lbs),
+        None => Err(Error::NotFound),
+    }
+}
+
+pub fn get_macro_targets(conn: &Connection) -> Result<MealSummary, Error> {
+    let now = Utc::now();
+    let current_weight_lbs = get_current_weight_lbs(conn)?;
+    let calories = 2400.0;
+    let protein_g = current_weight_lbs;
+    let calories_from_protein = protein_g * 4.0;
+    let remaining_calories = calories - calories_from_protein;
+    let calories_from_carbohydrates = remaining_calories / 2.0;
+    let calories_from_fat = remaining_calories - calories_from_carbohydrates;
+    let carbohydrates_g = calories_from_carbohydrates / 4.0;
+    let fat_g = calories_from_fat / 9.0;
+
+    Ok(MealSummary {
+        start_date: beginning_of_day(now),
+        end_date: end_of_day(now),
+        calories,
+        carbohydrates_g,
+        fat_g,
+        protein_g,
+    })
 }

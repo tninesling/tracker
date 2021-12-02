@@ -57,17 +57,17 @@ pub struct Ingredient {
     pub serving_size: f64,
     pub serving_unit: IngredientUnit,
     pub calories: f64,
-    pub carbohydrates_mg: f64,
-    pub fat_mg: f64,
-    pub protein_mg: f64,
+    pub carbohydrates_g: f64,
+    pub fat_g: f64,
+    pub protein_g: f64,
     #[serde(default)]
-    pub saturated_fat_mg: f64,
+    pub saturated_fat_g: f64,
     #[serde(default)]
-    pub polyunsaturated_fat_mg: f64,
+    pub polyunsaturated_fat_g: f64,
     #[serde(default)]
-    pub monounsaturated_fat_mg: f64,
+    pub monounsaturated_fat_g: f64,
     #[serde(default)]
-    pub trans_fat_mg: f64,
+    pub trans_fat_g: f64,
     #[serde(default)]
     pub fiber_mg: f64,
     #[serde(default)]
@@ -103,9 +103,9 @@ pub struct MealSummary {
     pub start_date: DateTime<Utc>,
     pub end_date: DateTime<Utc>,
     pub calories: f64,
-    pub carbohydrates_mg: f64,
-    pub fat_mg: f64,
-    pub protein_mg: f64,
+    pub carbohydrates_g: f64,
+    pub fat_g: f64,
+    pub protein_g: f64,
 }
 
 impl MealSummary {
@@ -114,9 +114,9 @@ impl MealSummary {
             start_date: Utc::now(),
             end_date: Utc::now(),
             calories: 0.0,
-            carbohydrates_mg: 0.0,
-            fat_mg: 0.0,
-            protein_mg: 0.0,
+            carbohydrates_g: 0.0,
+            fat_g: 0.0,
+            protein_g: 0.0,
         }
     }
 }
@@ -129,9 +129,9 @@ impl std::ops::Add<&MealSummary> for MealSummary {
             start_date: Ord::min(self.start_date, other.start_date),
             end_date: Ord::max(self.end_date, other.end_date),
             calories: self.calories + other.calories,
-            carbohydrates_mg: self.carbohydrates_mg + other.carbohydrates_mg,
-            fat_mg: self.fat_mg + other.fat_mg,
-            protein_mg: self.protein_mg + other.protein_mg,
+            carbohydrates_g: self.carbohydrates_g + other.carbohydrates_g,
+            fat_g: self.fat_g + other.fat_g,
+            protein_g: self.protein_g + other.protein_g,
         }
     }
 }
