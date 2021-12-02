@@ -3,6 +3,7 @@ pub mod errors;
 pub mod models;
 
 use chrono::{Timelike, Utc};
+use uuid::Uuid;
 
 use db::Connection;
 pub use errors::Error;
@@ -29,6 +30,50 @@ pub fn delete_workout(conn: &Connection, public_id: uuid::Uuid) -> Result<(), Er
 
 pub fn get_all_workouts(conn: &Connection) -> Result<Vec<Workout>, Error> {
     db::get_all_workouts(conn).map_err(Error::DBError)
+}
+
+pub fn get_next_workout(conn: &Connection) -> Result<Workout, Error> {
+    let mut workouts = get_all_workouts(conn)?;
+
+    workouts.sort_by_key(|w| w.date);
+
+    match workouts.pop() {
+        Some(last_workout) => Ok(next_workout(last_workout)),
+        None => Err(Error::NotFound),
+    }
+}
+
+fn next_workout(workout: Workout) -> Workout {
+    let exercises = workout.exercises.iter().map(|e| next_exercise(e)).collect();
+
+    Workout {
+        id: -1,
+        public_id: Uuid::new_v4(),
+        date: Utc::now(),
+        exercises,
+    }
+}
+
+fn next_exercise(exercise: &Exercise) -> Exercise {
+    let (sets, reps, weight_kg) = match (exercise.sets, exercise.reps, exercise.weight_kg) {
+        (3, 5, w) => (3, 10, w),
+        (3, 10, w) => (4, 5, w),
+        (4, 5, w) => (4, 10, w),
+        (4, 10, w) => (5, 5, w),
+        (5, 5, w) => (5, 10, w),
+        (5, 10, w) => (3, 5, w * 1.05),
+        other => other,
+    };
+
+    Exercise {
+        id: -1,
+        public_id: Uuid::new_v4(),
+        name: exercise.name.to_string(),
+        reps,
+        sets,
+        weight_kg,
+        workouts_id: -1,
+    }
 }
 
 pub fn summarize_workouts(conn: &Connection) -> Result<Vec<WorkoutSummary>, Error> {

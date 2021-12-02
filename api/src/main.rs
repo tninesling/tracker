@@ -23,6 +23,7 @@ async fn main() -> std::io::Result<()> {
             .service(status)
             .service(create_workout)
             .service(get_all_workouts)
+            .service(get_next_workout)
             .service(get_workout_summaries)
             .service(delete_workout)
             .service(create_ingredient)
@@ -64,6 +65,16 @@ async fn get_all_workouts(db_pool: web::Data<Pool>) -> impl Responder {
 
     match api::get_all_workouts(&conn) {
         Ok(workouts) => HttpResponse::Ok().json(workouts),
+        Err(e) => e.into(),
+    }
+}
+
+#[get("/workouts/next")]
+async fn get_next_workout(db_pool: web::Data<Pool>) -> impl Responder {
+    let conn = db_pool.get().unwrap();
+
+    match api::get_next_workout(&conn) {
+        Ok(workout) => HttpResponse::Ok().json(workout),
         Err(e) => e.into(),
     }
 }
