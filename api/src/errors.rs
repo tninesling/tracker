@@ -1,7 +1,7 @@
 use actix_web::HttpResponse;
 
 pub enum Error {
-    DBError(rusqlite::Error),
+    DBError(sqlx::Error),
     NotFound,
     UuidParseError(uuid::Error),
 }
