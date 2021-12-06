@@ -77,10 +77,10 @@ impl Exercise {
     })
   }
 
-  pub async fn find_all(db_pool: &SqlitePool) -> Result<Vec<Exercise>> {
+  pub async fn find_all<'a>(tx: &mut Transaction<'a, sqlx::Sqlite>) -> Result<Vec<Exercise>> {
     Ok(
       sqlx::query!(r#"SELECT id, name, reps, sets, weight_kg, workouts_id FROM exercises"#)
-        .fetch_all(db_pool)
+        .fetch_all(tx)
         .await?
         .into_iter()
         .map(|row| Exercise {
@@ -98,10 +98,10 @@ impl Exercise {
 }
 
 impl WorkoutEntry {
-  async fn find_all(db_pool: &SqlitePool) -> Result<Vec<WorkoutEntry>> {
+  async fn find_all<'a>(tx: &mut Transaction<'a, sqlx::Sqlite>) -> Result<Vec<WorkoutEntry>> {
     Ok(
       sqlx::query!(r#"SELECT id, date FROM workouts"#)
-        .fetch_all(db_pool)
+        .fetch_all(tx)
         .await?
         .into_iter()
         .map(|row| WorkoutEntry {
@@ -145,7 +145,8 @@ impl Workout {
   }
 
   pub async fn find_all(db_pool: &SqlitePool) -> Result<Vec<Workout>> {
-    let exercises = Exercise::find_all(db_pool).await?;
+    let mut tx = db_pool.begin().await?;
+    let exercises = Exercise::find_all(&mut tx).await?;
     let mut exercises_by_workouts = HashMap::new();
 
     for ex in exercises {
@@ -155,16 +156,31 @@ impl Workout {
         .push(ex);
     }
 
-    Ok(
-      WorkoutEntry::find_all(db_pool)
-        .await?
-        .into_iter()
-        .map(|we| Workout {
-          id: we.id,
-          date: we.date,
-          exercises: exercises_by_workouts.remove(&we.id).unwrap_or(Vec::new()),
-        })
-        .collect(),
+    let workouts = WorkoutEntry::find_all(&mut tx)
+      .await?
+      .into_iter()
+      .map(|we| Workout {
+        id: we.id,
+        date: we.date,
+        exercises: exercises_by_workouts.remove(&we.id).unwrap_or(Vec::new()),
+      })
+      .collect();
+
+    tx.commit().await?;
+    Ok(workouts)
+  }
+
+  pub async fn delete(id: Uuid, db_pool: &SqlitePool) -> Result<()> {
+    sqlx::query!(
+      r#"
+      DELETE FROM workouts
+      WHERE id = $1
+      "#,
+      id,
     )
+    .execute(db_pool)
+    .await?;
+
+    Ok(())
   }
 }
