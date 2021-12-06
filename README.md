@@ -28,3 +28,8 @@ An app for managing physical, mental, and financial maintenance and progress.
 
 - Recommend 1 week of meals
   - Generate grocery list
+
+## References
+
+- SQLx: https://github.com/launchbadge/sqlx
+- Actix SQLx example: https://github.com/actix/examples/tree/master/database_interactions/sqlx_todo

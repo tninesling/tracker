@@ -1,15 +1,17 @@
 CREATE TABLE IF NOT EXISTS workouts(
-  id BLOB PRIMARY KEY,
-  date INTEGER
+  id BLOB PRIMARY KEY NOT NULL,
+  date DATETIME NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS exercises(
-  id BLOB PRIMARY KEY,
-  name TEXT,
-  reps INTEGER,
-  sets INTEGER,
-  weight_kg REAL,
-  workouts_id REFERENCES workouts(id) ON DELETE CASCADE
+  id BLOB PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  reps INTEGER NOT NULL,
+  sets INTEGER NOT NULL,
+  weight_kg REAL NOT NULL,
+  workouts_id BLOB NOT NULL,
+  -- SQLx doesn't support inline REFERENCES syntax for foreign keys
+  FOREIGN KEY(workouts_id) REFERENCES workouts(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS meals(
