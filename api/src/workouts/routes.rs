@@ -1,10 +1,14 @@
-use crate::workouts::{Workout, WorkoutRequest};
+use crate::workouts::{next_workout, Workout, WorkoutRequest};
 use actix_web::{delete, get, post, web, HttpResponse, Responder};
 use sqlx::SqlitePool;
 use uuid::Uuid;
 
 pub fn init(cfg: &mut web::ServiceConfig) {
-  cfg.service(create).service(get_all).service(delete);
+  cfg
+    .service(create)
+    .service(get_all)
+    .service(delete)
+    .service(get_next);
 }
 
 // TODO construct error messages from errors
@@ -15,6 +19,16 @@ async fn get_all(db_pool: web::Data<SqlitePool>) -> impl Responder {
 
   match result {
     Ok(ws) => HttpResponse::Ok().json(ws),
+    Err(_) => HttpResponse::InternalServerError().body("Whoops!"),
+  }
+}
+
+#[get("/workouts/next")]
+async fn get_next(db_pool: web::Data<SqlitePool>) -> impl Responder {
+  let result = Workout::find_last(db_pool.get_ref()).await;
+
+  match result {
+    Ok(w) => HttpResponse::Ok().json(next_workout(&w)),
     Err(_) => HttpResponse::InternalServerError().body("Whoops!"),
   }
 }
