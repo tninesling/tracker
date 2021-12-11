@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Running DB upscripts"
-sqlite3 life_manager.db < schema.sql
+sqlite3 toad.db < schema.sql
 
 echo "Launching API service"
 cargo run

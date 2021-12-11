@@ -1,60 +1,51 @@
-import 'dart:convert';
 
+import 'package:beamer/beamer.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:ui/client.dart';
+import 'package:ui/create_workout_page.dart';
+import 'package:ui/models.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  MyApp({Key? key}) : super(key: key);
+
+  // https://pub.dev/packages/beamer#quick-start
+  final beamerDelegate = BeamerDelegate(
+    locationBuilder: RoutesLocationBuilder(
+      routes: {
+        '/': (context, state, data) => const HomePage(title: "Home sweet home"),
+        '/workouts/new': (context, state, data) => const CreateWorkoutPage()
+      }
+    ),
+    notFoundRedirectNamed: '/',
+  );
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return MaterialApp.router(
+      routeInformationParser: BeamerParser(),
+      routerDelegate: beamerDelegate,
+      backButtonDispatcher: BeamerBackButtonDispatcher(delegate: beamerDelegate),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => HomePageState();
 }
 
-class Workout {
-  final String date;
-
-  Workout({
-    required this.date,
-  });
-
-  factory Workout.fromJson(Map<String, dynamic> json) {
-    return Workout(
-      date: json['date'],
-    );
-  }
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class HomePageState extends State<HomePage> {
   late Future<List<Workout>> futureWorkouts;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   @override
   void initState() {
@@ -83,23 +74,10 @@ class _MyHomePageState extends State<MyHomePage> {
         )
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: () => context.beamToNamed('/workouts/new'),
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
-  }
-
-  Future<List<Workout>> fetchWorkouts() async {
-    const localhostIP = '10.0.2.2'; // Points to localhost when inside Android emulator
-    final response = await http.get(Uri.parse('http://$localhostIP:8080/workouts'));
-
-    if (response.statusCode == 200) {
-      final List<dynamic> workouts = jsonDecode(response.body);
-
-      return workouts.map((dyn) => Workout.fromJson(dyn)).toList();
-    } else {
-      throw Exception("Poopy stinky");
-    }
   }
 }

@@ -14,7 +14,7 @@ async fn main() -> std::io::Result<()> {
 
     let db_pool = SqlitePoolOptions::new()
         .max_connections(5)
-        .connect("life_manager.db")
+        .connect("toad.db")
         .await
         .unwrap(); // TODO error handling
 
