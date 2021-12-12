@@ -1,17 +1,33 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:ui/dtos.dart';
 import 'package:ui/models.dart';
 
-Future<List<Workout>> fetchWorkouts() async {
-    const localhostIP = '10.0.2.2'; // Points to localhost when inside Android emulator
-    final response = await http.get(Uri.parse('http://$localhostIP:8080/workouts'));
+const localhostIP = '10.0.2.2'; // Points to localhost when inside Android emulator
+const host = 'http://$localhostIP:8080';
 
-    if (response.statusCode == 200) {
-      final List<dynamic> workouts = jsonDecode(response.body);
+Future<Workout> createNewWorkout(CreateWorkoutDto dto) async {
+  final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+  final body = jsonEncode(dto.toJson());
+  final response = await http.post(Uri.parse('$host/workouts'), headers: headers, body: body);
 
-      return workouts.map((dyn) => Workout.fromJson(dyn)).toList();
-    } else {
-      throw Exception("Poopy stinky");
-    }
+  if (response.statusCode == 200) {
+    return Workout.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception("Poopy stinky");
   }
+}
+
+Future<List<Workout>> getAllWorkouts() async {
+  final response = await http.get(Uri.parse('$host/workouts'));
+
+  if (response.statusCode == 200) {
+    final List<dynamic> workouts = jsonDecode(response.body);
+
+    return workouts.map((dyn) => Workout.fromJson(dyn)).toList();
+  } else {
+    throw Exception("Poopy stinky");
+  }
+}

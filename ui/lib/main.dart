@@ -9,6 +9,11 @@ void main() {
   runApp(MyApp());
 }
 
+class MyRoutes {
+  static String get home => '/';
+  static String get newWorkout => '/workouts/new';
+}
+
 class MyApp extends StatelessWidget {
   MyApp({Key? key}) : super(key: key);
 
@@ -16,11 +21,11 @@ class MyApp extends StatelessWidget {
   final beamerDelegate = BeamerDelegate(
     locationBuilder: RoutesLocationBuilder(
       routes: {
-        '/': (context, state, data) => const HomePage(title: "Home sweet home"),
-        '/workouts/new': (context, state, data) => const CreateWorkoutPage()
+        MyRoutes.home: (context, state, data) => const HomePage(title: "Home sweet home"),
+        MyRoutes.newWorkout: (context, state, data) => const CreateWorkoutPage()
       }
     ),
-    notFoundRedirectNamed: '/',
+    notFoundRedirectNamed: MyRoutes.home,
   );
 
   // This widget is the root of your application.
@@ -44,13 +49,12 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  late Future<List<Workout>> futureWorkouts;
-
+  late Future<List<Workout>> workouts;
 
   @override
   void initState() {
     super.initState();
-    futureWorkouts = fetchWorkouts();
+    workouts = getAllWorkouts();
   }
 
   @override
@@ -61,10 +65,10 @@ class HomePageState extends State<HomePage> {
       ),
       body: Center(
         child: FutureBuilder<List<Workout>>(
-          future: futureWorkouts,
+          future: workouts,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return Text('${snapshot.data!.length} workouts');
+              return Text(snapshot.data!.map((w) => w.toJson()).join("\n"));
             } else if (snapshot.hasError) {
               return Text('${snapshot.error}');
             }
@@ -74,10 +78,10 @@ class HomePageState extends State<HomePage> {
         )
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.beamToNamed('/workouts/new'),
-        tooltip: 'Increment',
+        onPressed: () => context.beamToNamed(MyRoutes.newWorkout),
+        tooltip: 'Create New Workout',
         child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }

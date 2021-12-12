@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ui/dtos.dart';
+import 'package:ui/client.dart';
 
 class CreateWorkoutPage extends StatelessWidget {
   const CreateWorkoutPage({Key? key}) : super(key: key);
@@ -27,32 +29,34 @@ class WorkoutForm extends StatefulWidget {
 
 class WorkoutFormState extends State<WorkoutForm> {
   final _formKey = GlobalKey<FormState>();
+  late DateTime date;
+
+  @override
+  void initState() {
+    super.initState();
+    date = DateTime.now();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: Column(
+      child: ListView(
         children: <Widget>[
-          // based on https://docs.flutter.dev/cookbook/forms/validation#2-add-a-textformfield-with-validation-logic
-          TextFormField(
-            // The validator receives the text that the user has entered.
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter some text';
-              }
-              return null;
-            },
+          CalendarDatePicker(
+            initialDate: date,
+            firstDate: DateTime(2021),
+            lastDate: DateTime(2099),
+            onDateChanged: (newDate) {
+              setState(() {
+                date = newDate;
+              });
+            }
           ),
           ElevatedButton(
             onPressed: () {
-              // Validate returns true if the form is valid, or false otherwise.
               if (_formKey.currentState!.validate()) {
-                // If the form is valid, display a snackbar. In the real world,
-                // you'd often call a server or save the information in a database.
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Processing Data')),
-                );
+                createNewWorkout(CreateWorkoutDto(date.toUtc(), []));
               }
             },
             child: const Text('Submit'),
