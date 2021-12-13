@@ -1,6 +1,6 @@
 # ui
 
-A Flutter-based UI for Toad
+A Flutter-based UI 
 
 ## Codegen
 

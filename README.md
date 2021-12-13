@@ -1,7 +1,6 @@
-# Life Manager
+# Heath
 
-An app for managing physical, mental, and financial maintenance and progress.
-
+Health without taking an l
 ## Features
 
 ### Workouts
