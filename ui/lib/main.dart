@@ -1,16 +1,25 @@
-
 import 'package:beamer/beamer.dart';
 import 'package:flutter/material.dart';
-import 'package:ui/client.dart';
-import 'package:ui/create_workout_page.dart';
-import 'package:ui/models.dart';
+import 'package:provider/provider.dart';
+import 'package:ui/providers/workout_form.dart';
+import 'package:ui/screens/create_exercise.dart';
+import 'package:ui/screens/create_workout.dart';
+import 'package:ui/screens/home.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => WorkoutFormState())
+      ],
+      child: MyApp()
+    )
+  );
 }
 
 class MyRoutes {
   static String get home => '/';
+  static String get newExercise => '/exercises/new';
   static String get newWorkout => '/workouts/new';
 }
 
@@ -21,8 +30,9 @@ class MyApp extends StatelessWidget {
   final beamerDelegate = BeamerDelegate(
     locationBuilder: RoutesLocationBuilder(
       routes: {
-        MyRoutes.home: (context, state, data) => const HomePage(title: "Home sweet home"),
-        MyRoutes.newWorkout: (context, state, data) => const CreateWorkoutPage()
+        MyRoutes.home: (context, state, data) => const HomeScreen(title: "Home sweet home"),
+        MyRoutes.newExercise: (context, state, data) => const CreateExerciseScreen(),
+        MyRoutes.newWorkout: (context, state, data) => const CreateWorkoutScreen()
       }
     ),
     notFoundRedirectNamed: MyRoutes.home,
@@ -35,53 +45,6 @@ class MyApp extends StatelessWidget {
       routeInformationParser: BeamerParser(),
       routerDelegate: beamerDelegate,
       backButtonDispatcher: BeamerBackButtonDispatcher(delegate: beamerDelegate),
-    );
-  }
-}
-
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  State<HomePage> createState() => HomePageState();
-}
-
-class HomePageState extends State<HomePage> {
-  late Future<List<Workout>> workouts;
-
-  @override
-  void initState() {
-    super.initState();
-    workouts = getAllWorkouts();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: FutureBuilder<List<Workout>>(
-          future: workouts,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return Text(snapshot.data!.map((w) => w.toJson()).join("\n"));
-            } else if (snapshot.hasError) {
-              return Text('${snapshot.error}');
-            }
-
-            return const CircularProgressIndicator();
-          }
-        )
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.beamToNamed(MyRoutes.newWorkout),
-        tooltip: 'Create New Workout',
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }

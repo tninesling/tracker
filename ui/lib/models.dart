@@ -15,3 +15,12 @@ class Workout {
 
   Map<String, dynamic> toJson() => _$WorkoutToJson(this);
 }
+
+@JsonSerializable()
+class Exercise {
+  final String id;
+
+  Exercise({
+    required this.id,
+  });
+}
