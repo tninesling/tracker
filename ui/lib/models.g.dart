@@ -15,3 +15,11 @@ Map<String, dynamic> _$WorkoutToJson(Workout instance) => <String, dynamic>{
       'id': instance.id,
       'date': instance.date.toIso8601String(),
     };
+
+Exercise _$ExerciseFromJson(Map<String, dynamic> json) => Exercise(
+      id: json['id'] as String,
+    );
+
+Map<String, dynamic> _$ExerciseToJson(Exercise instance) => <String, dynamic>{
+      'id': instance.id,
+    };

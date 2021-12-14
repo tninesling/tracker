@@ -4,4 +4,4 @@ echo "Running DB upscripts"
 sqlite3 heath.db < schema.sql
 
 echo "Launching API service"
-cargo run
+cargo watch -x 'run --bin api'

@@ -8,244 +8,236 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExerciseRequest {
-  pub name: String,
-  pub reps: i64,
-  pub sets: i64,
-  pub weight_kg: f32,
+    pub name: String,
+    pub reps: i64,
+    pub sets: i64,
+    pub weight_kg: f32,
 }
 
 #[derive(Serialize, FromRow)]
 pub struct Exercise {
-  pub id: Uuid,
-  pub name: String,
-  pub reps: i64,
-  pub sets: i64,
-  pub weight_kg: f32,
-  pub workouts_id: Uuid,
+    pub id: Uuid,
+    pub name: String,
+    pub reps: i64,
+    pub sets: i64,
+    pub weight_kg: f32,
+    pub workouts_id: Uuid,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WorkoutRequest {
-  pub date: DateTime<Utc>,
-  pub exercises: Vec<ExerciseRequest>,
+    pub date: DateTime<Utc>,
+    pub exercises: Vec<ExerciseRequest>,
 }
 
 #[derive(Serialize)]
 pub struct Workout {
-  pub id: Uuid,
-  pub date: DateTime<Utc>,
-  pub exercises: Vec<Exercise>,
+    pub id: Uuid,
+    pub date: DateTime<Utc>,
+    pub exercises: Vec<Exercise>,
 }
 
 #[derive(FromRow)]
 struct WorkoutEntry {
-  pub id: Uuid,
-  pub date: DateTime<Utc>,
+    pub id: Uuid,
+    pub date: DateTime<Utc>,
 }
 
 impl Exercise {
-  pub async fn create<'a>(
-    exercise_req: ExerciseRequest,
-    workouts_id: Uuid,
-    tx: &mut Transaction<'a, sqlx::Sqlite>,
-  ) -> Result<Exercise> {
-    let id = Uuid::new_v4();
+    pub async fn create<'a>(
+        exercise_req: ExerciseRequest,
+        workouts_id: Uuid,
+        tx: &mut Transaction<'a, sqlx::Sqlite>,
+    ) -> Result<Exercise> {
+        let id = Uuid::new_v4();
 
-    sqlx::query!(
-      r#"
+        sqlx::query!(
+            r#"
       INSERT INTO exercises (id, name, reps, sets, weight_kg, workouts_id)
       VALUES ($1, $2, $3, $4, $5, $6)
       "#,
-      id,
-      exercise_req.name,
-      exercise_req.reps,
-      exercise_req.sets,
-      exercise_req.weight_kg,
-      workouts_id
-    )
-    .execute(tx)
-    .await?;
+            id,
+            exercise_req.name,
+            exercise_req.reps,
+            exercise_req.sets,
+            exercise_req.weight_kg,
+            workouts_id
+        )
+        .execute(tx)
+        .await?;
 
-    Ok(Exercise {
-      id,
-      name: exercise_req.name,
-      reps: exercise_req.reps,
-      sets: exercise_req.sets,
-      weight_kg: exercise_req.weight_kg,
-      workouts_id,
-    })
-  }
+        Ok(Exercise {
+            id,
+            name: exercise_req.name,
+            reps: exercise_req.reps,
+            sets: exercise_req.sets,
+            weight_kg: exercise_req.weight_kg,
+            workouts_id,
+        })
+    }
 
-  pub async fn find_all<'a>(tx: &mut Transaction<'a, sqlx::Sqlite>) -> Result<Vec<Exercise>> {
-    Ok(
-      sqlx::query!(
-        r#"
+    pub async fn find_all<'a>(tx: &mut Transaction<'a, sqlx::Sqlite>) -> Result<Vec<Exercise>> {
+        Ok(sqlx::query!(
+            r#"
         SELECT id, name, reps, sets, weight_kg, workouts_id
         FROM exercises
         "#
-      )
-      .fetch_all(tx)
-      .await?
-      .into_iter()
-      .map(|row| Exercise {
-        // TODO proper Uuid support from "uuid" feature only available for postgres
-        id: Uuid::from_slice(row.id.as_slice()).unwrap(),
-        name: row.name,
-        reps: row.reps,
-        sets: row.sets,
-        weight_kg: row.weight_kg,
-        workouts_id: Uuid::from_slice(row.workouts_id.as_slice()).unwrap(),
-      })
-      .collect(),
-    )
-  }
+        )
+        .fetch_all(tx)
+        .await?
+        .into_iter()
+        .map(|row| Exercise {
+            // TODO proper Uuid support from "uuid" feature only available for postgres
+            id: Uuid::from_slice(row.id.as_slice()).unwrap(),
+            name: row.name,
+            reps: row.reps,
+            sets: row.sets,
+            weight_kg: row.weight_kg,
+            workouts_id: Uuid::from_slice(row.workouts_id.as_slice()).unwrap(),
+        })
+        .collect())
+    }
 
-  pub async fn find_for_workout<'a>(
-    workouts_id: Uuid,
-    tx: &mut Transaction<'a, sqlx::Sqlite>,
-  ) -> Result<Vec<Exercise>> {
-    Ok(
-      sqlx::query!(
-        r#"
+    pub async fn find_for_workout<'a>(
+        workouts_id: Uuid,
+        tx: &mut Transaction<'a, sqlx::Sqlite>,
+    ) -> Result<Vec<Exercise>> {
+        Ok(sqlx::query!(
+            r#"
         SELECT id, name, reps, sets, weight_kg, workouts_id
         FROM exercises
         WHERE workouts_id = $1
         "#,
-        workouts_id,
-      )
-      .fetch_all(tx)
-      .await?
-      .into_iter()
-      .map(|row| Exercise {
-        id: Uuid::from_slice(row.id.as_slice()).unwrap(),
-        name: row.name,
-        reps: row.reps,
-        sets: row.sets,
-        weight_kg: row.weight_kg,
-        workouts_id: Uuid::from_slice(row.workouts_id.as_slice()).unwrap(),
-      })
-      .collect(),
-    )
-  }
-}
-
-impl WorkoutEntry {
-  async fn find_all<'a>(tx: &mut Transaction<'a, sqlx::Sqlite>) -> Result<Vec<WorkoutEntry>> {
-    Ok(
-      sqlx::query!(r#"SELECT id, date FROM workouts"#)
+            workouts_id,
+        )
         .fetch_all(tx)
         .await?
         .into_iter()
-        .map(|row| WorkoutEntry {
-          id: Uuid::from_slice(row.id.as_slice()).unwrap(),
-          date: DateTime::from_utc(row.date, Utc),
+        .map(|row| Exercise {
+            id: Uuid::from_slice(row.id.as_slice()).unwrap(),
+            name: row.name,
+            reps: row.reps,
+            sets: row.sets,
+            weight_kg: row.weight_kg,
+            workouts_id: Uuid::from_slice(row.workouts_id.as_slice()).unwrap(),
         })
-        .collect(),
-    )
-  }
+        .collect())
+    }
+}
 
-  async fn find_last<'a>(tx: &mut Transaction<'a, sqlx::Sqlite>) -> Result<WorkoutEntry> {
-    Ok(
-      sqlx::query!(
-        r#"
+impl WorkoutEntry {
+    async fn find_all<'a>(tx: &mut Transaction<'a, sqlx::Sqlite>) -> Result<Vec<WorkoutEntry>> {
+        Ok(sqlx::query!(r#"SELECT id, date FROM workouts"#)
+            .fetch_all(tx)
+            .await?
+            .into_iter()
+            .map(|row| WorkoutEntry {
+                id: Uuid::from_slice(row.id.as_slice()).unwrap(),
+                date: DateTime::from_utc(row.date, Utc),
+            })
+            .collect())
+    }
+
+    async fn find_last<'a>(tx: &mut Transaction<'a, sqlx::Sqlite>) -> Result<WorkoutEntry> {
+        Ok(sqlx::query!(
+            r#"
         SELECT id, date
         FROM workouts
         ORDER BY date DESC
         LIMIT 1
         "#
-      )
-      .fetch_one(tx)
-      .await
-      .map(|row| WorkoutEntry {
-        id: Uuid::from_slice(row.id.as_slice()).unwrap(),
-        date: DateTime::from_utc(row.date, Utc),
-      })?,
-    )
-  }
+        )
+        .fetch_one(tx)
+        .await
+        .map(|row| WorkoutEntry {
+            id: Uuid::from_slice(row.id.as_slice()).unwrap(),
+            date: DateTime::from_utc(row.date, Utc),
+        })?)
+    }
 }
 
 impl Workout {
-  pub async fn create(workout_req: WorkoutRequest, db_pool: &SqlitePool) -> Result<Workout> {
-    let mut tx = db_pool.begin().await?;
-    let mut workout = Workout {
-      id: Uuid::new_v4(),
-      date: workout_req.date,
-      exercises: vec![],
-    };
+    pub async fn create(workout_req: WorkoutRequest, db_pool: &SqlitePool) -> Result<Workout> {
+        let mut tx = db_pool.begin().await?;
+        let mut workout = Workout {
+            id: Uuid::new_v4(),
+            date: workout_req.date,
+            exercises: vec![],
+        };
 
-    sqlx::query!(
-      r#"
+        sqlx::query!(
+            r#"
       INSERT INTO workouts (id, date)
       VALUES ($1, $2)
       "#,
-      workout.id,
-      workout.date,
-    )
-    .execute(&mut tx)
-    .await?;
+            workout.id,
+            workout.date,
+        )
+        .execute(&mut tx)
+        .await?;
 
-    for exercise_req in workout_req.exercises {
-      let exercise = Exercise::create(exercise_req, workout.id, &mut tx).await?;
+        for exercise_req in workout_req.exercises {
+            let exercise = Exercise::create(exercise_req, workout.id, &mut tx).await?;
 
-      workout.exercises.push(exercise);
+            workout.exercises.push(exercise);
+        }
+
+        tx.commit().await?;
+
+        Ok(workout)
     }
 
-    tx.commit().await?;
+    pub async fn find_all(db_pool: &SqlitePool) -> Result<Vec<Workout>> {
+        let mut tx = db_pool.begin().await?;
+        let exercises = Exercise::find_all(&mut tx).await?;
+        let mut exercises_by_workouts = HashMap::new();
 
-    Ok(workout)
-  }
+        for ex in exercises {
+            exercises_by_workouts
+                .entry(ex.workouts_id)
+                .or_insert_with(Vec::new)
+                .push(ex);
+        }
 
-  pub async fn find_all(db_pool: &SqlitePool) -> Result<Vec<Workout>> {
-    let mut tx = db_pool.begin().await?;
-    let exercises = Exercise::find_all(&mut tx).await?;
-    let mut exercises_by_workouts = HashMap::new();
+        let workouts = WorkoutEntry::find_all(&mut tx)
+            .await?
+            .into_iter()
+            .map(|we| Workout {
+                id: we.id,
+                date: we.date,
+                exercises: exercises_by_workouts.remove(&we.id).unwrap_or(Vec::new()),
+            })
+            .collect();
 
-    for ex in exercises {
-      exercises_by_workouts
-        .entry(ex.workouts_id)
-        .or_insert_with(Vec::new)
-        .push(ex);
+        tx.commit().await?;
+        Ok(workouts)
     }
 
-    let workouts = WorkoutEntry::find_all(&mut tx)
-      .await?
-      .into_iter()
-      .map(|we| Workout {
-        id: we.id,
-        date: we.date,
-        exercises: exercises_by_workouts.remove(&we.id).unwrap_or(Vec::new()),
-      })
-      .collect();
+    pub async fn find_last(db_pool: &SqlitePool) -> Result<Workout> {
+        let mut tx = db_pool.begin().await?;
+        let entry = WorkoutEntry::find_last(&mut tx).await?;
+        let exercises = Exercise::find_for_workout(entry.id, &mut tx).await?;
+        tx.commit().await?;
 
-    tx.commit().await?;
-    Ok(workouts)
-  }
+        Ok(Workout {
+            id: entry.id,
+            date: entry.date,
+            exercises,
+        })
+    }
 
-  pub async fn find_last(db_pool: &SqlitePool) -> Result<Workout> {
-    let mut tx = db_pool.begin().await?;
-    let entry = WorkoutEntry::find_last(&mut tx).await?;
-    let exercises = Exercise::find_for_workout(entry.id, &mut tx).await?;
-    tx.commit().await?;
-
-    Ok(Workout {
-      id: entry.id,
-      date: entry.date,
-      exercises,
-    })
-  }
-
-  pub async fn delete(id: Uuid, db_pool: &SqlitePool) -> Result<()> {
-    sqlx::query!(
-      r#"
+    pub async fn delete(id: Uuid, db_pool: &SqlitePool) -> Result<()> {
+        sqlx::query!(
+            r#"
       DELETE FROM workouts
       WHERE id = $1
       "#,
-      id,
-    )
-    .execute(db_pool)
-    .await?;
+            id,
+        )
+        .execute(db_pool)
+        .await?;
 
-    Ok(())
-  }
+        Ok(())
+    }
 }

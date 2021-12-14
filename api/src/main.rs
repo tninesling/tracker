@@ -5,6 +5,7 @@ use dotenv::dotenv;
 use env_logger::Env;
 use sqlx::sqlite::SqlitePoolOptions;
 
+mod summaries;
 mod workouts;
 
 #[actix_web::main]
@@ -26,6 +27,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .wrap(Logger::default())
             .service(status)
+            .configure(summaries::init)
             .configure(workouts::init)
     })
     .bind("127.0.0.1:8080")?
