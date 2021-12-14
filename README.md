@@ -1,8 +1,11 @@
 # Heath
 
-Health without taking an l
-## Features
+Health without taking an L
 
+## Architecture
+![Architecture Diagram](./arch.drawio.svg)
+
+## Features
 ### Workouts
 
 - Exercise CRUD
