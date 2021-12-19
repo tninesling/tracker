@@ -3,33 +3,29 @@
 Health without taking an L
 
 ## Architecture
+
 ![Architecture Diagram](./arch.drawio.svg)
 
 ## Features
-### Workouts
 
-- Exercise CRUD
-  - Support weight in both lbs & kg
+Workouts:
+[✓] Record & manage workouts
+[_] Show trend in total weight lifted in workouts over time
+[_] Recommend next workout based on previous workouts
 
-- Workout CRUD
-  - Recording should allow setting date (i.e. record this workout from yesterday)
-  - Deleting will require an identifier (uuid)
+Diet
+[_] Record & manage diet/groceries
+[_] Show trend in macros over time
+[_] Recommend target calories, macros, and micros for day
+[_] Recommend next meal based on previous meal
 
-- Summarize workouts
-  - Total weight per day
+Weight
+[_] Record & manage weight
+[_] Show trend in weight over time
 
-### Diet
-
-- Ingredients & Meal CRUD
-  - Calories, Macros & Micros
-  - Amounts (mg, ml)
-
-- Summarize diet
-  - Today's macros/micros
-  - Total macros/micros per day
-
-- Recommend 1 week of meals
-  - Generate grocery list
+Sleep
+[_] Record & manage sleep/caffeine
+[_] Show sleep trends overlayed with caffeine intake
 
 ## References
 
