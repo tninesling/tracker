@@ -1,5 +1,7 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:provider/provider.dart';
 import 'package:ui/neu/exercise.dart';
+import 'package:ui/state.dart';
 
 class MyRoutes {
   static String get home => '/';
@@ -8,7 +10,12 @@ class MyRoutes {
 }
 
 
-void main() => runApp(const MyApp());
+void main() => runApp(MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => DietState())
+      ],
+      child: MyApp()
+    ));
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
