@@ -6,6 +6,7 @@ import 'package:ui/neu/exercise.dart';
 import 'package:ui/neu/add/feature_request.dart';
 import 'package:ui/neu/settings.dart';
 import 'package:ui/neu/sleep.dart';
+import 'package:ui/neu/trends.dart';
 
 import 'add/add_sleep.dart';
 import 'atoms/themed_icon.dart';
@@ -25,6 +26,18 @@ class BottomNav extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              NeumorphicRadio(
+                child: const ThemedIcon(Icons.trending_up_sharp),
+                value: "Trends",
+                groupValue: groupValue,
+                onChanged: (str) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (ctx) => TrendsScreen()
+                    )
+                  );
+                },
+              ),
               NeumorphicRadio(
                 child: const ThemedIcon(Icons.fitness_center_sharp),
                 value: "Exercise",

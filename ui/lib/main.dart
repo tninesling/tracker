@@ -1,7 +1,8 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
-import 'package:ui/neu/exercise.dart';
 import 'package:ui/state.dart';
+
+import 'neu/trends.dart';
 
 class MyRoutes {
   static String get home => '/';
@@ -28,26 +29,26 @@ class MyApp extends StatelessWidget {
       title: 'Heath',
       themeMode: ThemeMode.light,
       // Color palettes: https://api.flutter.dev/flutter/material/Colors-class.html
-      theme: NeumorphicThemeData(
-        baseColor: Colors.indigo.shade100,
-        depth: 1,
+      theme: const NeumorphicThemeData(
+        baseColor: Color(0xFFEEEEEE),
+        depth: 2,
         lightSource: LightSource.topLeft,
         intensity: 4,
         iconTheme: IconThemeData(
-          color: Colors.indigo.shade300,
+          color: Colors.black,
         ),
         textTheme: TextTheme(
           headline1: TextStyle(
-            color: Colors.indigo.shade900,
+            color: Colors.black,
             fontSize: 32,
             fontWeight: FontWeight.bold,
           ),
           headline2: TextStyle(
-            color: Colors.indigo.shade800,
+            color: Colors.black,
             fontSize: 24,
           ),
           bodyText1: TextStyle(
-            color: Colors.indigo.shade300,
+            color: Colors.black,
             fontSize: 16,
           )
         )
@@ -77,7 +78,7 @@ class MyApp extends StatelessWidget {
           )
         )
       ),
-      home: const ExerciseScreen(),
+      home: TrendsScreen(),
     );
   }
 }
