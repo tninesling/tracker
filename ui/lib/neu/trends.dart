@@ -1,11 +1,13 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
-import 'package:ui/neu/atoms/timeseries.dart';
+import 'package:ui/neu/atoms/scatter_plot.dart';
 
 import '../state.dart';
 import 'bottom_nav.dart';
 
 class TrendsScreen extends StatelessWidget {
+  const TrendsScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,11 +22,13 @@ class TrendsScreen extends StatelessWidget {
 class TrendChart extends StatefulWidget {
   final toggles = ["calories", "carbs", "fat", "protein"];
   final mappers = [
-    (m) => TimeseriesPoint(date: m.date, value: m.calories),
-    (m) => TimeseriesPoint(date: m.date, value: m.carbGrams),
-    (m) => TimeseriesPoint(date: m.date, value: m.fatGrams),
-    (m) => TimeseriesPoint(date: m.date, value: m.proteinGrams),
+    (m) => m.calories,
+    (m) => m.carbGrams,
+    (m) => m.fatGrams,
+    (m) => m.proteinGrams,
   ];
+
+  TrendChart({Key? key}) : super(key: key);
 
   @override
   createState() => TrendChartState();
@@ -36,27 +40,46 @@ class TrendChartState extends State<TrendChart> {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      Consumer<DietState>(builder: (context, state, child) {
-        var mapper = widget.mappers[_selectedIndex];
-        return NeumorphicTimeseries(
-            timeseriesPoints: state.meals().map(mapper).toList());
-      }),
-      NeumorphicToggle(
-        selectedIndex: _selectedIndex,
-        children: widget.toggles.map(_buildToggleElement).toList(),
-        thumb: Neumorphic(
-          style: NeumorphicStyle(
-            boxShape: NeumorphicBoxShape.roundRect(
-                const BorderRadius.all(Radius.circular(12))),
-          ),
-        ),
-        onChanged: (v) {
-          setState(() {
-            _selectedIndex = v;
-          });
-        },
-      )
+      _buildChart(),
+      _buildToggle(),
     ]);
+  }
+
+  Widget _buildChart() {
+    return AspectRatio(aspectRatio: 1.7, child: Consumer<DietState>(
+      // TODO pass regression line endpoints to plot
+      builder: (context, state, child) => ScatterPlot(points: _createPoints(state.meals()))));
+  }
+
+  List<Point> _createPoints(List<Meal> meals) {
+    var minDate = meals.map((m) => m.date).reduce(_minDate);
+
+    return meals.map((m) => Point(
+      x: m.date.difference(minDate).inDays,
+      y: widget.mappers[_selectedIndex](m),
+    )).toList();
+  }
+
+  DateTime _minDate(DateTime d1, DateTime d2) {
+    return d1.isBefore(d2) ? d1 : d2;
+  }
+
+  Widget _buildToggle() {
+    return NeumorphicToggle(
+      selectedIndex: _selectedIndex,
+      children: widget.toggles.map(_buildToggleElement).toList(),
+      thumb: Neumorphic(
+        style: NeumorphicStyle(
+          boxShape: NeumorphicBoxShape.roundRect(
+              const BorderRadius.all(Radius.circular(12))),
+        ),
+      ),
+      onChanged: (v) {
+        setState(() {
+          _selectedIndex = v;
+        });
+      },
+    );
   }
 
   ToggleElement _buildToggleElement(String text) {

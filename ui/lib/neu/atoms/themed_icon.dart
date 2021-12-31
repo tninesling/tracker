@@ -8,11 +8,11 @@ class ThemedIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(12),
       child: Icon(
         iconData,
         color: NeumorphicTheme.currentTheme(context).iconTheme.color,
-        size: 32,
+        size: 24,
       ),
     );
   }
