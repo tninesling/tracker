@@ -1,18 +1,12 @@
 import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
-
-class Point {
-  final num x;
-  final num y;
-
-  Point({required this.x, required this.y});
-}
+import 'package:ui/neu/models/trend.dart';
 
 class ScatterPlot extends StatelessWidget {
   final List<Point> points;
   final List<Point> regressionLineEndpoints;
 
-  ScatterPlot({Key? key, required this.points, this.regressionLineEndpoints = const []});
+  const ScatterPlot({Key? key, required this.points, this.regressionLineEndpoints = const []}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +33,6 @@ class ScatterPlot extends StatelessWidget {
   Series<Point, num> _createRegressionLineSeries() {
     return Series(
       id: 'regressionSeries',
-      // TODO calculate regression points
       data: regressionLineEndpoints,
       domainFn: (p, _) => p.x,
       measureFn: (p, _) => p.y,

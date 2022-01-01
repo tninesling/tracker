@@ -6,6 +6,7 @@ use env_logger::Env;
 use sqlx::sqlite::SqlitePoolOptions;
 
 mod summaries;
+mod trends;
 mod workouts;
 
 #[actix_web::main]
@@ -28,6 +29,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .service(status)
             .configure(summaries::init)
+            .configure(trends::init)
             .configure(workouts::init)
     })
     .bind("127.0.0.1:8080")?

@@ -1,9 +1,10 @@
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
-import 'package:provider/provider.dart';
-import 'package:ui/neu/atoms/scatter_plot.dart';
+import 'dart:math';
 
-import '../state.dart';
-import 'bottom_nav.dart';
+import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:ui/client.dart';
+import 'package:ui/neu/atoms/scatter_plot.dart';
+import 'package:ui/neu/bottom_nav.dart';
+import 'package:ui/neu/models/trend.dart';
 
 class TrendsScreen extends StatelessWidget {
   const TrendsScreen({Key? key}) : super(key: key);
@@ -27,6 +28,12 @@ class TrendChart extends StatefulWidget {
     (m) => m.fatGrams,
     (m) => m.proteinGrams,
   ];
+  final fetchCalls = [
+    getCalorieTrend,
+    getCarbsTrend,
+    getFatTrend,
+    getProteinTrend,
+  ];
 
   TrendChart({Key? key}) : super(key: key);
 
@@ -35,7 +42,15 @@ class TrendChart extends StatefulWidget {
 }
 
 class TrendChartState extends State<TrendChart> {
-  var _selectedIndex = 0;
+  late int selectedIndex;
+  late Future<Trend> trend;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedIndex = 0;
+    trend = getCalorieTrend();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,27 +61,33 @@ class TrendChartState extends State<TrendChart> {
   }
 
   Widget _buildChart() {
-    return AspectRatio(aspectRatio: 1.7, child: Consumer<DietState>(
-      // TODO pass regression line endpoints to plot
-      builder: (context, state, child) => ScatterPlot(points: _createPoints(state.meals()))));
-  }
+    return AspectRatio(aspectRatio: 1.7, child: FutureBuilder<Trend>(
+      future: trend,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (!snapshot.hasData) {
+          return const CircularProgressIndicator();
+        }
 
-  List<Point> _createPoints(List<Meal> meals) {
-    var minDate = meals.map((m) => m.date).reduce(_minDate);
+        var trend = snapshot.data!;
+        double minX = trend.points.fold(double.infinity, (acc, p) => min(acc, p.x));
+        double maxX = trend.points.fold(double.negativeInfinity, (acc, p) => max(acc, p.x));
 
-    return meals.map((m) => Point(
-      x: m.date.difference(minDate).inDays,
-      y: widget.mappers[_selectedIndex](m),
-    )).toList();
-  }
-
-  DateTime _minDate(DateTime d1, DateTime d2) {
-    return d1.isBefore(d2) ? d1 : d2;
+        return ScatterPlot(
+          points: trend.points,
+          regressionLineEndpoints: [
+            trend.line.pointAt(minX),
+            trend.line.pointAt(maxX),
+          ],
+        );
+      }
+    ));
   }
 
   Widget _buildToggle() {
     return NeumorphicToggle(
-      selectedIndex: _selectedIndex,
+      selectedIndex: selectedIndex,
       children: widget.toggles.map(_buildToggleElement).toList(),
       thumb: Neumorphic(
         style: NeumorphicStyle(
@@ -76,7 +97,8 @@ class TrendChartState extends State<TrendChart> {
       ),
       onChanged: (v) {
         setState(() {
-          _selectedIndex = v;
+          selectedIndex = v;
+          trend = widget.fetchCalls[v]();
         });
       },
     );

@@ -10,7 +10,6 @@ class MyRoutes {
   static String get newWorkout => '/workouts/new';
 }
 
-
 void main() => runApp(MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => DietState())
@@ -78,7 +77,7 @@ class MyApp extends StatelessWidget {
           )
         )
       ),
-      home: TrendsScreen(),
+      home: const TrendsScreen(),
     );
   }
 }
