@@ -14,12 +14,12 @@ spec:
     spec:
       containers:
         - name: api
-          command: ['cargo', 'run']
+          command: ["/app/api"]
           image: api
           resources:
             requests:
-              memory: '2Gi'
-              cpu: '1'
+              memory: "2Gi"
+              cpu: "1"
             limits:
-              memory: '4Gi'
-              cpu: '2'
+              memory: "4Gi"
+              cpu: "2"
