@@ -14,3 +14,4 @@ deploy:
   kubectl:
     manifests:
       - infra/api/*
+      - infra/ingress.yaml
