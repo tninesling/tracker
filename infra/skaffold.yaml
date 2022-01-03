@@ -6,6 +6,7 @@ build:
     sha256: {}
   local:
     concurrency: 0
+    useBuildkit: true
   artifacts:
     - image: api
       context: api
