@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: api
-          command: ["/app/api"]
+          command: ["/usr/local/bin/api"]
           image: api
           resources:
             requests:
