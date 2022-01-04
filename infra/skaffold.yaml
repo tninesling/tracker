@@ -1,0 +1,18 @@
+apiVersion: skaffold/v2beta26
+kind: Config
+
+build:
+  tagPolicy:
+    sha256: {}
+  local:
+    concurrency: 0
+    useBuildkit: true
+  artifacts:
+    - image: api
+      context: api
+
+deploy:
+  kubectl:
+    manifests:
+      - infra/api/*
+      - infra/ingress.yaml

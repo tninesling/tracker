@@ -9,12 +9,14 @@ import 'package:ui/neu/dtos/trend.dart';
 import 'package:ui/neu/models/trend.dart';
 
 const localhostIP = '10.0.2.2'; // Points to localhost when inside Android emulator
-const host = 'http://$localhostIP:8080';
+const minikubeIP = '192.168.49.2';
+const host = 'http://$minikubeIP';
 
 Future<Workout> createNewWorkout(CreateWorkoutDto dto) async {
   final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   final body = jsonEncode(dto.toJson());
-  final response = await http.post(Uri.parse('$host/workouts'), headers: headers, body: body);
+  final response = await http.post(Uri.parse('$host/workouts'),
+      headers: headers, body: body);
 
   if (response.statusCode == 200) {
     return Workout.fromJson(jsonDecode(response.body));
