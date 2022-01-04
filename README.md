@@ -27,7 +27,15 @@ Sleep
 [_] Record & manage sleep/caffeine
 [_] Show sleep trends overlayed with caffeine intake
 
-## Connecting to the DB
+## Development
+
+### Spinning up the project
+
+- Start minikube with `minikube start`
+- Build & deploy services with `skaffold dev -f infra/skaffold.yaml`
+- Expose the ingress on localhost with `minikube tunnel` (required on MacOS, otherwise just send requests to `minikube ip`)
+
+### Connecting to the DB
 
 - Start a client pod with `kubectl exec -it cockroachdb-client-secure -- ./cockroach sql --certs-dir=/cockroach/cockroach-certs --host=cockroachdb-public`
 - Open a shell with `kubectl exec -it cockroachdb-client-secure -- ./cockroach sql --certs-dir=/cockroach/cockroach-certs --host=cockroachdb-public`

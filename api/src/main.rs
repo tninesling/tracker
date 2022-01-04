@@ -1,4 +1,4 @@
-use actix_cors::Cors;
+// use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use deadpool_postgres::{Config, ManagerConfig, Pool, RecyclingMethod, Runtime};
@@ -27,11 +27,11 @@ async fn main() -> std::io::Result<()> {
     println!("Starting server");
 
     HttpServer::new(move || {
-        let cors = Cors::default().allow_any_origin();
+        //let cors = Cors::default().allow_any_origin();
 
         App::new()
-            .data(pool.clone())
-            .wrap(cors)
+            .app_data(web::Data::new(pool.clone()))
+            //.wrap(cors)
             .wrap(Logger::default())
             .service(status)
             .configure(trends::init)
@@ -52,5 +52,5 @@ async fn status(db_pool: web::Data<Pool>) -> impl Responder {
         }
     }
 
-    HttpResponse::PreconditionFailed().body("")
+    HttpResponse::PreconditionFailed().body("I'm dead!")
 }
