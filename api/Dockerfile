@@ -16,3 +16,5 @@ FROM debian:buster-slim AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/debug/api /usr/local/bin
 ENTRYPOINT [ "/usr/local/bin/api" ]
+
+EXPOSE 8080
