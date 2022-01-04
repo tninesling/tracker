@@ -27,6 +27,11 @@ Sleep
 [_] Record & manage sleep/caffeine
 [_] Show sleep trends overlayed with caffeine intake
 
+## Connecting to the DB
+
+- Start a client pod with `kubectl exec -it cockroachdb-client-secure -- ./cockroach sql --certs-dir=/cockroach/cockroach-certs --host=cockroachdb-public`
+- Open a shell with `kubectl exec -it cockroachdb-client-secure -- ./cockroach sql --certs-dir=/cockroach/cockroach-certs --host=cockroachdb-public`
+
 ## References
 
 - SQLx: https://github.com/launchbadge/sqlx

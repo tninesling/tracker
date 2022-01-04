@@ -10,9 +10,10 @@ build:
   artifacts:
     - image: api
       context: api
-
 deploy:
   kubectl:
     manifests:
+      - infra/db/cockroach-definition.yaml
       - infra/api/*
+      - infra/db/*
       - infra/ingress.yaml
