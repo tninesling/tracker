@@ -13,7 +13,6 @@ build:
 deploy:
   kubectl:
     manifests:
-      - infra/db/cockroach-definition.yaml
       - infra/api/*
-      - infra/db/*
+      # - infra/db/*
       - infra/ingress.yaml

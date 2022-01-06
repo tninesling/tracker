@@ -17,6 +17,8 @@ async fn main() -> std::io::Result<()> {
 
     let mut cfg = Config::new();
     cfg.host = Some("cockroachdb-public".to_string());
+    cfg.port = Some(26257);
+    cfg.user = Some("root".to_string());
     cfg.dbname = Some("heath".to_string());
     cfg.manager = Some(ManagerConfig { recycling_method: RecyclingMethod::Fast });
 
@@ -43,14 +45,13 @@ async fn main() -> std::io::Result<()> {
 
 #[get("/status")]
 async fn status(db_pool: web::Data<Pool>) -> impl Responder {
-    println!("Ok, let's see that status");
-
-    if let Ok(client) = db_pool.get().await {
-        println!("Got a client");
-        if let Ok(_) = client.query("SELECT 1", &[]).await {
-            return HttpResponse::Ok().body("I'm alive!");
-        }
+    match db_pool.get().await {
+        Ok(client) => {
+            match client.query("SELECT 1", &[]).await {
+                Ok(_) => HttpResponse::Ok().body("I'm alive!\n"),
+                Err(e) => HttpResponse::PreconditionFailed().body(format!("{}\n", e)),
+            }
+        },
+        Err(e) => HttpResponse::PreconditionFailed().body(format!("{}\n", e)),
     }
-
-    HttpResponse::PreconditionFailed().body("I'm dead!")
 }

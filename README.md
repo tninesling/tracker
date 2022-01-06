@@ -33,6 +33,7 @@ Sleep
 
 - Start minikube with `minikube start`
 - Build & deploy services with `skaffold dev -f infra/skaffold.yaml`
+  - If this fails with a missing `CrdbCluster` message, `kubectl apply` the missing CockroachDB manifests
 - Expose the ingress on localhost with `minikube tunnel` (required on MacOS, otherwise just send requests to `minikube ip`)
 
 ### Connecting to the DB

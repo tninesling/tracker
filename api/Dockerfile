@@ -1,3 +1,4 @@
+# TODO build on alpine (needs special libc)
 FROM rust:1.57-buster as base
 RUN cargo install cargo-chef
 WORKDIR /app
@@ -12,6 +13,7 @@ RUN cargo chef cook --recipe-path recipe.json
 COPY . .
 RUN cargo build --bin api
 
+# TODO run on alpine
 FROM debian:buster-slim AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/debug/api /usr/local/bin
