@@ -1,0 +1,12 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrator
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      containers:
+        - name: migrator
+          image: migrator
+      restartPolicy: Never

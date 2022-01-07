@@ -1,6 +1,5 @@
 apiVersion: skaffold/v2beta26
 kind: Config
-
 build:
   tagPolicy:
     sha256: {}
@@ -10,9 +9,11 @@ build:
   artifacts:
     - image: api
       context: api
+    - image: migrator
+      context: migrator
 deploy:
   kubectl:
     manifests:
       - infra/api/*
-      # - infra/db/*
+      - infra/migrator/*
       - infra/ingress.yaml
