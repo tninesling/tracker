@@ -1,0 +1,26 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dropshot = "0.5"
+serde_json = "1.0.74"
+
+[dependencies.schemars]
+version = "0.8.8"
+features = [ "uuid" ]
+
+[dependencies.serde]
+version = "1.0.133"
+features = [ "derive" ]
+
+[dependencies.sqlx]
+version = "0.5.10"
+features = [ "postgres", "runtime-tokio-rustls", "chrono", "uuid" ]
+
+[dependencies.tokio]
+version = "1.15"
+features = [ "full" ]
