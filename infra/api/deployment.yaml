@@ -14,7 +14,6 @@ spec:
     spec:
       containers:
         - name: api
-          command: ["/usr/local/bin/api"]
           image: api
           ports:
             - containerPort: 8080
@@ -30,4 +29,4 @@ spec:
               path: /health
               port: 8080
             initialDelaySeconds: 1
-            periodSeconds: 1
+            periodSeconds: 10

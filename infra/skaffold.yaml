@@ -8,9 +8,9 @@ build:
     useBuildkit: true
   artifacts:
     - image: api
-      context: api
+      context: api2/server
     - image: migrator
-      context: migrator
+      context: api2/migrator
 deploy:
   kubectl:
     manifests:

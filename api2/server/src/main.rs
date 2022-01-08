@@ -9,11 +9,14 @@ use dropshot::HttpResponseUpdatedNoContent;
 use dropshot::HttpServerStarter;
 use dropshot::RequestContext;
 use dropshot::TypedBody;
+use http::StatusCode;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
-use std::sync::atomic::AtomicU64;
-use std::sync::atomic::Ordering;
+use sqlx::postgres::PgPool;
+use sqlx::postgres::PgPoolOptions;
+use std::net::Ipv4Addr;
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 #[tokio::main]
@@ -24,7 +27,10 @@ async fn main() -> Result<(), String> {
      * request port 0, which allows the operating system to pick any available
      * port.
      */
-    let config_dropshot: ConfigDropshot = Default::default();
+    let config_dropshot: ConfigDropshot = ConfigDropshot {
+        bind_address: SocketAddr::from((Ipv4Addr::new(0, 0, 0, 0), 8080)),
+        request_body_max_bytes: 1024,
+    };
 
     /*
      * For simplicity, we'll configure an "info"-level logger that writes to
@@ -41,13 +47,14 @@ async fn main() -> Result<(), String> {
      * Build a description of the API.
      */
     let mut api = ApiDescription::new();
-    api.register(example_api_get_counter).unwrap();
+    api.register(health).unwrap();
     api.register(example_api_put_counter).unwrap();
 
     /*
      * The functions that implement our API endpoints will share this context.
      */
-    let api_context = ExampleContext::new();
+    let db_pool = PgPoolOptions::new().connect("postgres://root@cockroachdb-public:26257/heath").await.unwrap();
+    let api_context = ExampleContext::new(db_pool);
 
     /*
      * Set up the server.
@@ -68,14 +75,13 @@ async fn main() -> Result<(), String> {
  * Application-specific example context (state shared by handler functions)
  */
 struct ExampleContext {
-    /** counter that can be manipulated by requests to the HTTP API */
-    counter: AtomicU64,
+    pub db_pool: PgPool,
 }
 
 impl ExampleContext {
-    pub fn new() -> ExampleContext {
+    pub fn new(db_pool: PgPool) -> ExampleContext {
         ExampleContext {
-            counter: AtomicU64::new(0),
+            db_pool,
         }
     }
 }
@@ -99,26 +105,21 @@ struct CounterValue {
     path = "/health"
 }]
 async fn health(
-    _rqctx: Arc<RequestContext<ExampleContext>>,
-) -> Result<HttpResponseOk<()>, HttpError> {
-    Ok(HttpResponseOk(()))
-}
-
-/**
- * Fetch the current value of the counter.
- */
-#[endpoint {
-    method = GET,
-    path = "/counter",
-}]
-async fn example_api_get_counter(
     rqctx: Arc<RequestContext<ExampleContext>>,
-) -> Result<HttpResponseOk<CounterValue>, HttpError> {
-    let api_context = rqctx.context();
+) -> Result<HttpResponseOk<()>, HttpError> {
+    let ctx = rqctx.context();
 
-    Ok(HttpResponseOk(CounterValue {
-        counter: api_context.counter.load(Ordering::SeqCst),
-    }))
+    let db_check = sqlx::query("SELECT 1").fetch_one(&ctx.db_pool).await;
+
+    match db_check {
+        Ok(_) => Ok(HttpResponseOk(())),
+        Err(e) => Err(HttpError {
+            status_code: StatusCode::PRECONDITION_FAILED,
+            error_code: Some("db-down".to_string()),
+            internal_message: "(ノಠ益ಠ)ノ彡┻━┻ Damn database doesn't even work".to_string(),
+            external_message: "Whoops!".to_string(),
+        })
+    }
 }
 
 /**
@@ -142,7 +143,6 @@ async fn example_api_put_counter(
             format!("do not like the number {}", updated_value.counter),
         ))
     } else {
-        api_context.counter.store(updated_value.counter, Ordering::SeqCst);
         Ok(HttpResponseUpdatedNoContent())
     }
 }
