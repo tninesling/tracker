@@ -15,9 +15,17 @@ use serde::Deserialize;
 use serde::Serialize;
 use sqlx::postgres::PgPool;
 use sqlx::postgres::PgPoolOptions;
+use sqlx::postgres::PgRow;
+use sqlx::Row;
+use trends::Ingredient;
+use trends::Point;
+use trends::Trend;
+use trends::linear_regression;
 use std::net::Ipv4Addr;
 use std::net::SocketAddr;
 use std::sync::Arc;
+
+mod trends;
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
@@ -49,6 +57,7 @@ async fn main() -> Result<(), String> {
     let mut api = ApiDescription::new();
     api.register(live).unwrap();
     api.register(ready).unwrap();
+    api.register(get_calorie_trend).unwrap();
     api.register(example_api_put_counter).unwrap();
 
     /*
@@ -131,6 +140,51 @@ async fn ready(
             external_message: "Whoops!".to_string(),
         })
     }
+}
+
+#[endpoint {
+    method = GET,
+    path = "/trends/calories",
+}]
+async fn get_calorie_trend(
+    rqctx: Arc<RequestContext<ExampleContext>>
+) -> Result<HttpResponseOk<Trend>, HttpError> {
+    let ctx = rqctx.context();
+    let ingredients = sqlx::query(r#"
+        SELECT id, name, calories, carb_grams, fat_grams, protein_grams
+        FROM ingredients
+    "#)
+    .map(|row: PgRow| {
+        Ingredient {
+            id: row.get(0),
+            name: row.get(1),
+            calories: row.get(2),
+            carb_grams: row.get(3),
+            fat_grams: row.get(4),
+            protein_grams: row.get(5),
+        }
+    })
+    .fetch_all(&ctx.db_pool)
+    .await
+    .unwrap(); // TODO handle error response
+
+    let mut points = Vec::with_capacity(ingredients.len());
+    let mut index = 0.0;
+    for ingredient in ingredients {
+        points.push(Point {
+            x: index,
+            y: ingredient.calories,
+            label: ingredient.name,
+        });
+        index += 1.0;
+    }
+
+    let trend_line = linear_regression(&points);
+
+    Ok(HttpResponseOk(Trend {
+        points,
+        line: trend_line,
+    }))
 }
 
 /**

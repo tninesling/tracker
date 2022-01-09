@@ -1,0 +1,12 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seeder
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      containers:
+        - name: seeder
+          image: seeder
+      restartPolicy: Never

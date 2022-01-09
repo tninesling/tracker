@@ -9,6 +9,7 @@ edition = "2021"
 dropshot = "0.5"
 http = "0.2.0"
 serde_json = "1.0.74"
+uuid = "0.8.2"
 
 [dependencies.schemars]
 version = "0.8.8"
