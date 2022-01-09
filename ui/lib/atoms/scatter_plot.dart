@@ -1,6 +1,6 @@
 import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:ui/neu/models/trend.dart';
+import 'package:ui/models/trend.dart';
 
 class ScatterPlot extends StatelessWidget {
   final List<Point> points;

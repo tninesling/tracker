@@ -2,19 +2,13 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
 import 'package:ui/state.dart';
 
-import 'neu/trends.dart';
-
-class MyRoutes {
-  static String get home => '/';
-  static String get newExercise => '/exercises/new';
-  static String get newWorkout => '/workouts/new';
-}
+import 'screens/trends.dart';
 
 void main() => runApp(MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => DietState())
       ],
-      child: MyApp()
+      child: const MyApp()
     ));
 
 class MyApp extends StatelessWidget {

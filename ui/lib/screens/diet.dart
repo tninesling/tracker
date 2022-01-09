@@ -1,9 +1,9 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
-import 'package:ui/neu/bottom_nav.dart';
+import 'package:ui/molecules/bottom_nav.dart';
 
 import '../state.dart';
-import 'basic.dart';
+import '../atoms/text_from_the_depths.dart';
 
 class DietScreen extends StatelessWidget {
   const DietScreen({Key? key}) : super(key: key);

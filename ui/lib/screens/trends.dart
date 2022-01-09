@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:ui/client.dart';
-import 'package:ui/neu/atoms/scatter_plot.dart';
-import 'package:ui/neu/bottom_nav.dart';
-import 'package:ui/neu/models/trend.dart';
+import 'package:ui/atoms/scatter_plot.dart';
+import 'package:ui/molecules/bottom_nav.dart';
+import 'package:ui/models/trend.dart';
 
 class TrendsScreen extends StatelessWidget {
   const TrendsScreen({Key? key}) : super(key: key);

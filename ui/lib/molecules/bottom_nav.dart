@@ -1,15 +1,14 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
-import 'package:ui/neu/add/add_diet.dart';
-import 'package:ui/neu/add/add_exercise.dart';
-import 'package:ui/neu/diet.dart';
-import 'package:ui/neu/exercise.dart';
-import 'package:ui/neu/add/feature_request.dart';
-import 'package:ui/neu/settings.dart';
-import 'package:ui/neu/sleep.dart';
-import 'package:ui/neu/trends.dart';
-
-import 'add/add_sleep.dart';
-import 'atoms/themed_icon.dart';
+import 'package:ui/atoms/themed_icon.dart';
+import 'package:ui/screens/add/add_diet.dart';
+import 'package:ui/screens/add/add_exercise.dart';
+import 'package:ui/screens/add/feature_request.dart';
+import 'package:ui/screens/add/add_sleep.dart';
+import 'package:ui/screens/diet.dart';
+import 'package:ui/screens/exercise.dart';
+import 'package:ui/screens/settings.dart';
+import 'package:ui/screens/sleep.dart';
+import 'package:ui/screens/trends.dart';
 
 class BottomNav extends StatelessWidget {
   final String groupValue;

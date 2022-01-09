@@ -1,7 +1,7 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
-import 'basic.dart';
-import 'bottom_nav.dart';
+import '../atoms/text_from_the_depths.dart';
+import '../molecules/bottom_nav.dart';
 
 class ExerciseScreen extends StatelessWidget {
   const ExerciseScreen({Key? key}) : super(key: key);

@@ -1,4 +1,4 @@
-import 'package:ui/neu/dtos/trend.dart';
+import 'package:ui/dtos/trend.dart';
 
 class Trend {
   final List<Point> points;
