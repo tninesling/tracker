@@ -8,11 +8,11 @@ build:
     useBuildkit: true
   artifacts:
     - image: api
-      context: api2/server
+      context: api/server
     - image: migrator
-      context: api2/migrator
+      context: api/migrator
     - image: seeder
-      context: api2/seeder
+      context: api/seeder
 deploy:
   kubectl:
     manifests:
