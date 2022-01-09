@@ -5,25 +5,19 @@ use dropshot::ConfigLogging;
 use dropshot::ConfigLoggingLevel;
 use dropshot::HttpError;
 use dropshot::HttpResponseOk;
-use dropshot::HttpResponseUpdatedNoContent;
 use dropshot::HttpServerStarter;
 use dropshot::RequestContext;
-use dropshot::TypedBody;
 use http::StatusCode;
-use schemars::JsonSchema;
-use serde::Deserialize;
-use serde::Serialize;
 use sqlx::postgres::PgPool;
 use sqlx::postgres::PgPoolOptions;
-use sqlx::postgres::PgRow;
-use sqlx::Row;
-use trends::Ingredient;
 use trends::Point;
 use trends::Trend;
 use trends::linear_regression;
 use std::net::Ipv4Addr;
 use std::net::SocketAddr;
 use std::sync::Arc;
+
+use crate::trends::get_all_ingredients;
 
 mod trends;
 
@@ -58,13 +52,15 @@ async fn main() -> Result<(), String> {
     api.register(live).unwrap();
     api.register(ready).unwrap();
     api.register(get_calorie_trend).unwrap();
-    api.register(example_api_put_counter).unwrap();
+    api.register(get_carb_trend).unwrap();
+    api.register(get_fat_trend).unwrap();
+    api.register(get_protein_trend).unwrap();
 
     /*
      * The functions that implement our API endpoints will share this context.
      */
     let db_pool = PgPoolOptions::new().connect("postgres://root@cockroachdb-public:26257/heath").await.unwrap();
-    let api_context = ExampleContext::new(db_pool);
+    let api_context = ApiContext::new(db_pool);
 
     /*
      * Set up the server.
@@ -84,13 +80,13 @@ async fn main() -> Result<(), String> {
 /**
  * Application-specific example context (state shared by handler functions)
  */
-struct ExampleContext {
+struct ApiContext {
     pub db_pool: PgPool,
 }
 
-impl ExampleContext {
-    pub fn new(db_pool: PgPool) -> ExampleContext {
-        ExampleContext {
+impl ApiContext {
+    pub fn new(db_pool: PgPool) -> ApiContext {
+        ApiContext {
             db_pool,
         }
     }
@@ -100,22 +96,12 @@ impl ExampleContext {
  * HTTP API interface
  */
 
-/**
- * `CounterValue` represents the value of the API's counter, either as the
- * response to a GET request to fetch the counter or as the body of a PUT
- * request to update the counter.
- */
-#[derive(Deserialize, Serialize, JsonSchema)]
-struct CounterValue {
-    counter: u64,
-}
-
 #[endpoint {
     method = GET,
     path = "/live"
 }]
 async fn live(
-    _rqctx: Arc<RequestContext<ExampleContext>>,
+    _rqctx: Arc<RequestContext<ApiContext>>,
 ) -> Result<HttpResponseOk<()>, HttpError> {
     Ok(HttpResponseOk(()))
 }
@@ -125,7 +111,7 @@ async fn live(
     path = "/ready"
 }]
 async fn ready(
-    rqctx: Arc<RequestContext<ExampleContext>>,
+    rqctx: Arc<RequestContext<ApiContext>>,
 ) -> Result<HttpResponseOk<()>, HttpError> {
     let ctx = rqctx.context();
 
@@ -133,7 +119,7 @@ async fn ready(
 
     match db_check {
         Ok(_) => Ok(HttpResponseOk(())),
-        Err(e) => Err(HttpError {
+        Err(_) => Err(HttpError { // TODO log error
             status_code: StatusCode::PRECONDITION_FAILED,
             error_code: Some("db-down".to_string()),
             internal_message: "(ノಠ益ಠ)ノ彡┻━┻ Damn database doesn't even work".to_string(),
@@ -147,26 +133,10 @@ async fn ready(
     path = "/trends/calories",
 }]
 async fn get_calorie_trend(
-    rqctx: Arc<RequestContext<ExampleContext>>
+    rqctx: Arc<RequestContext<ApiContext>>
 ) -> Result<HttpResponseOk<Trend>, HttpError> {
     let ctx = rqctx.context();
-    let ingredients = sqlx::query(r#"
-        SELECT id, name, calories, carb_grams, fat_grams, protein_grams
-        FROM ingredients
-    "#)
-    .map(|row: PgRow| {
-        Ingredient {
-            id: row.get(0),
-            name: row.get(1),
-            calories: row.get(2),
-            carb_grams: row.get(3),
-            fat_grams: row.get(4),
-            protein_grams: row.get(5),
-        }
-    })
-    .fetch_all(&ctx.db_pool)
-    .await
-    .unwrap(); // TODO handle error response
+    let ingredients = get_all_ingredients(&ctx.db_pool).await.unwrap(); // TODO handle error response
 
     let mut points = Vec::with_capacity(ingredients.len());
     let mut index = 0.0;
@@ -187,27 +157,89 @@ async fn get_calorie_trend(
     }))
 }
 
-/**
- * Update the current value of the counter.  Note that the special value of 10
- * is not allowed (just to demonstrate how to generate an error).
- */
 #[endpoint {
-    method = PUT,
-    path = "/counter",
+    method = GET,
+    path = "/trends/carbs",
 }]
-async fn example_api_put_counter(
-    rqctx: Arc<RequestContext<ExampleContext>>,
-    update: TypedBody<CounterValue>,
-) -> Result<HttpResponseUpdatedNoContent, HttpError> {
-    let api_context = rqctx.context();
-    let updated_value = update.into_inner();
+async fn get_carb_trend(
+    rqctx: Arc<RequestContext<ApiContext>>
+) -> Result<HttpResponseOk<Trend>, HttpError> {
+    let ctx = rqctx.context();
+    let ingredients = get_all_ingredients(&ctx.db_pool).await.unwrap(); // TODO handle error response
 
-    if updated_value.counter == 10 {
-        Err(HttpError::for_bad_request(
-            Some(String::from("BadInput")),
-            format!("do not like the number {}", updated_value.counter),
-        ))
-    } else {
-        Ok(HttpResponseUpdatedNoContent())
+    let mut points = Vec::with_capacity(ingredients.len());
+    let mut index = 0.0;
+    for ingredient in ingredients {
+        points.push(Point {
+            x: index,
+            y: ingredient.carb_grams,
+            label: ingredient.name,
+        });
+        index += 1.0;
     }
+
+    let trend_line = linear_regression(&points);
+
+    Ok(HttpResponseOk(Trend {
+        points,
+        line: trend_line,
+    }))
+}
+
+#[endpoint {
+    method = GET,
+    path = "/trends/fat",
+}]
+async fn get_fat_trend(
+    rqctx: Arc<RequestContext<ApiContext>>
+) -> Result<HttpResponseOk<Trend>, HttpError> {
+    let ctx = rqctx.context();
+    let ingredients = get_all_ingredients(&ctx.db_pool).await.unwrap(); // TODO handle error response
+
+    let mut points = Vec::with_capacity(ingredients.len());
+    let mut index = 0.0;
+    for ingredient in ingredients {
+        points.push(Point {
+            x: index,
+            y: ingredient.fat_grams,
+            label: ingredient.name,
+        });
+        index += 1.0;
+    }
+
+    let trend_line = linear_regression(&points);
+
+    Ok(HttpResponseOk(Trend {
+        points,
+        line: trend_line,
+    }))
+}
+
+#[endpoint {
+    method = GET,
+    path = "/trends/protein",
+}]
+async fn get_protein_trend(
+    rqctx: Arc<RequestContext<ApiContext>>
+) -> Result<HttpResponseOk<Trend>, HttpError> {
+    let ctx = rqctx.context();
+    let ingredients = get_all_ingredients(&ctx.db_pool).await.unwrap(); // TODO handle error response
+
+    let mut points = Vec::with_capacity(ingredients.len());
+    let mut index = 0.0;
+    for ingredient in ingredients {
+        points.push(Point {
+            x: index,
+            y: ingredient.protein_grams,
+            label: ingredient.name,
+        });
+        index += 1.0;
+    }
+
+    let trend_line = linear_regression(&points);
+
+    Ok(HttpResponseOk(Trend {
+        points,
+        line: trend_line,
+    }))
 }

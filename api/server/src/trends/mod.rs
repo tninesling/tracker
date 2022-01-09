@@ -3,6 +3,28 @@ mod models;
 
 pub use dtos::*;
 pub use models::*;
+use sqlx::PgPool;
+use sqlx::postgres::PgRow;
+use sqlx::Row;
+
+pub async fn get_all_ingredients(db_pool: &PgPool) -> Result<Vec<Ingredient>, sqlx::Error> {
+  sqlx::query(r#"
+        SELECT id, name, calories, carb_grams, fat_grams, protein_grams
+        FROM ingredients
+    "#)
+    .map(|row: PgRow| {
+        Ingredient {
+            id: row.get(0),
+            name: row.get(1),
+            calories: row.get(2),
+            carb_grams: row.get(3),
+            fat_grams: row.get(4),
+            protein_grams: row.get(5),
+        }
+    })
+    .fetch_all(db_pool)
+    .await
+}
 
 pub fn linear_regression(points: &Vec<Point>) -> Line {
   let sum_x = points.iter().fold(0.0, |acc, p| acc + p.x);

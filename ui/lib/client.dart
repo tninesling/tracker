@@ -60,7 +60,7 @@ Future<Trend> getCalorieTrend() async {
 }
 
 Future<Trend> getCarbsTrend() async {
-  final response = await http.get(Uri.parse('$host/trends/carbohydrates'));
+  final response = await http.get(Uri.parse('$host/trends/carbs'));
 
   if (response.statusCode == 200) {
     return Trend.fromDto(TrendDto.fromJson(jsonDecode(response.body)));
