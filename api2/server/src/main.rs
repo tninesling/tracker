@@ -47,7 +47,8 @@ async fn main() -> Result<(), String> {
      * Build a description of the API.
      */
     let mut api = ApiDescription::new();
-    api.register(health).unwrap();
+    api.register(live).unwrap();
+    api.register(ready).unwrap();
     api.register(example_api_put_counter).unwrap();
 
     /*
@@ -102,9 +103,19 @@ struct CounterValue {
 
 #[endpoint {
     method = GET,
-    path = "/health"
+    path = "/live"
 }]
-async fn health(
+async fn live(
+    _rqctx: Arc<RequestContext<ExampleContext>>,
+) -> Result<HttpResponseOk<()>, HttpError> {
+    Ok(HttpResponseOk(()))
+}
+
+#[endpoint {
+    method = GET,
+    path = "/ready"
+}]
+async fn ready(
     rqctx: Arc<RequestContext<ExampleContext>>,
 ) -> Result<HttpResponseOk<()>, HttpError> {
     let ctx = rqctx.context();
