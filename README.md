@@ -38,17 +38,25 @@ Sleep
 
 ### Connecting to the DB
 
-- Open a shell with
-  ```
-  kubectl run cockroachdb -it \
-  --image=cockroachdb/cockroach:v21.2.3 \
-  --rm \
-  --restart=Never \
-  -- sql \
-  --insecure \
-  --host=cockroachdb-public \
-  --database=heath
-  ```
+Open a shell with
+```
+kubectl run cockroachdb -it \
+--image=cockroachdb/cockroach:v21.2.3 \
+--rm \
+--restart=Never \
+-- sql \
+--insecure \
+--host=cockroachdb-public \
+--database=heath
+```
+
+### Generating API clients
+
+Run the Swagger codegen CLI in a Docker container with (swap in spec location and language)
+```
+docker run --rm -v $(pwd):/local swaggerapi/swagger-codegen-cli-v3 generate -i /local/spec.json -l dart -o /local/swagger/dart
+```
+Note: currently has issues connecting to the minikube ip address, so it needs to be done with a local file mounted in a volume
 
 ## References
 

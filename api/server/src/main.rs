@@ -7,9 +7,12 @@ use dropshot::HttpError;
 use dropshot::HttpResponseOk;
 use dropshot::HttpServerStarter;
 use dropshot::RequestContext;
+use http::Response;
 use http::StatusCode;
+use hyper::Body;
 use sqlx::postgres::PgPool;
 use sqlx::postgres::PgPoolOptions;
+use tokio::fs::File;
 use trends::Point;
 use trends::Trend;
 use trends::linear_regression;
@@ -51,10 +54,17 @@ async fn main() -> Result<(), String> {
     let mut api = ApiDescription::new();
     api.register(live).unwrap();
     api.register(ready).unwrap();
+    api.register(get_spec).unwrap();
     api.register(get_calorie_trend).unwrap();
     api.register(get_carb_trend).unwrap();
     api.register(get_fat_trend).unwrap();
     api.register(get_protein_trend).unwrap();
+
+    let mut file = File::create("spec.json").await.unwrap().into_std().await;
+    api.openapi("Heath API", "0.0.1")
+        .write(&mut file)
+        .unwrap();
+
 
     /*
      * The functions that implement our API endpoints will share this context.
@@ -126,6 +136,29 @@ async fn ready(
             external_message: "Whoops!".to_string(),
         })
     }
+}
+
+#[endpoint {
+    method = GET,
+    path = "/spec",
+}]
+async fn get_spec(
+    _rqctx: Arc<RequestContext<ApiContext>>,
+) -> Result<Response<Body>, HttpError> {
+    let file = File::open("spec.json").await.map_err(|_| {
+        HttpError { // TODO log error
+            status_code: StatusCode::UNPROCESSABLE_ENTITY,
+            error_code: Some("no-file".to_string()),
+            internal_message: "(ノಠ益ಠ)ノ彡┻━┻ Cannot open spec file".to_string(),
+            external_message: "Whoops!".to_string(),
+        }
+    })?;
+    let file_stream = hyper_staticfile::FileBytesStream::new(file);
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header(http::header::CONTENT_TYPE, "application/json".to_string())
+        .body(file_stream.into_body()).unwrap())
 }
 
 #[endpoint {
