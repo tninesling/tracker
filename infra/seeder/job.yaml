@@ -3,7 +3,6 @@ kind: Job
 metadata:
   name: seeder
 spec:
-  ttlSecondsAfterFinished: 60
   template:
     spec:
       containers:
