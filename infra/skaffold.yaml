@@ -11,12 +11,9 @@ build:
       context: api/server
     - image: migrator
       context: api/migrator
-    - image: seeder
-      context: api/seeder
 deploy:
   kubectl:
     manifests:
       - infra/api/*
       - infra/migrator/*
-      - infra/seeder/*
       - infra/ingress.yaml

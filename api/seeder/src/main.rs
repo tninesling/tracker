@@ -15,7 +15,9 @@ async fn main() -> Result<(), Error> {
     });
 
     for upscript in SQL_DIRECTORY.files() {
-        client.execute(upscript.contents_utf8().unwrap(), &[]).await?;
+        for statement in upscript.contents_utf8().unwrap().split(";") {
+            client.execute(statement, &[]).await?;
+        }
     }
 
     Ok(())

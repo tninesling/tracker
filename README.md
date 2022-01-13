@@ -50,13 +50,11 @@ kubectl run cockroachdb -it \
 --database=heath
 ```
 
-### Generating API clients
+### Seeding the DB
 
-Run the Swagger codegen CLI in a Docker container with (swap in spec location and language)
-```
-docker run --rm -v $(pwd):/local swaggerapi/swagger-codegen-cli-v3 generate -i /local/spec.json -l dart -o /local/swagger/dart
-```
-Note: currently has issues connecting to the minikube ip address, so it needs to be done with a local file mounted in a volume
+- Make sure your docker is pointing to the minikube env with `eval $(minikube docker-env)`
+- From `api/seeder` build the image with `docker build -t seeder:latest .`
+- Apply the `infra/seeder/job.yaml` manifest
 
 ## References
 

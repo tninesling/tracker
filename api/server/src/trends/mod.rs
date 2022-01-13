@@ -1,8 +1,14 @@
 mod dtos;
 mod models;
 
+use std::collections::HashMap;
+
+use chrono::Datelike;
 pub use dtos::*;
 pub use models::*;
+
+use chrono::DateTime;
+use chrono::Utc;
 use sqlx::PgPool;
 use sqlx::postgres::PgRow;
 use sqlx::Row;
@@ -26,13 +32,94 @@ pub async fn get_all_ingredients(db_pool: &PgPool) -> Result<Vec<Ingredient>, sq
     .await
 }
 
+pub async fn get_daily_macro_trends_since_date(db_pool: &PgPool, date: DateTime<Utc>) -> Result<HashMap<String, Trend>, sqlx::Error> {
+  let rows: Vec<PgRow> = sqlx::query(r#"
+    WITH ingredients_eaten AS (
+      SELECT
+        DATE_TRUNC('day', m.date) AS day,
+        i.carb_grams AS carb_grams,
+        i.fat_grams AS fat_grams,
+        i.protein_grams AS protein_grams
+      FROM meals m
+        JOIN meals_ingredients mi
+        ON m.id = mi.meals_id
+        JOIN ingredients i
+        ON mi.ingredients_id = i.id
+      WHERE m.date > $1
+    )
+    SELECT
+      day,
+      SUM(carb_grams) AS carb_grams,
+      SUM(fat_grams) AS fat_grams,
+      SUM(protein_grams) AS protein_grams
+    FROM ingredients_eaten
+    GROUP BY day
+    ORDER BY day ASC
+  "#)
+  .bind(date)
+  .fetch_all(db_pool)
+  .await?;
+
+  if rows.len() < 1 {
+    return Ok(HashMap::new());
+  }
+
+  let first_date: DateTime<Utc> = rows[0].get(0);
+
+  let carb_points = rows.iter().map(|row| {
+    let date: DateTime<Utc> = row.get(0);  
+    let carb_grams: f64 = row.get(1);
+    let days_since_first_date = (date - first_date).num_days() as f64;
+    let label = format!("{}-{}-{}", date.year(), date.month(), date.day());
+
+    Point { x: days_since_first_date, y: carb_grams, label }
+  }).collect();
+  let carb_trend = linear_regression(&carb_points);
+
+  let fat_points = rows.iter().map(|row| {
+    let date: DateTime<Utc> = row.get(0);  
+    let fat_grams: f64 = row.get(2);
+    let days_since_first_date = (date - first_date).num_days() as f64;
+    let label = format!("{}-{}-{}", date.year(), date.month(), date.day());
+
+    Point { x: days_since_first_date, y: fat_grams, label }
+  }).collect();
+  let fat_trend = linear_regression(&fat_points);
+
+  let protein_points = rows.iter().map(|row| {
+    let date: DateTime<Utc> = row.get(0);  
+    let protein_grams: f64 = row.get(3);
+    let days_since_first_date = (date - first_date).num_days() as f64;
+    let label = format!("{}-{}-{}", date.year(), date.month(), date.day());
+
+    Point { x: days_since_first_date, y: protein_grams, label }
+  }).collect();
+  let protein_trend = linear_regression(&protein_points);
+
+  let mut trend_map = HashMap::with_capacity(3);
+  trend_map.insert("carbs".to_string(), Trend {
+    points: carb_points,
+    line: carb_trend,
+  });
+  trend_map.insert("fat".to_string(), Trend {
+    points: fat_points,
+    line: fat_trend,
+  });
+  trend_map.insert("protein".to_string(), Trend {
+    points: protein_points,
+    line: protein_trend,
+  });
+
+  Ok(trend_map)
+}
+
 pub fn linear_regression(points: &Vec<Point>) -> Line {
   let sum_x = points.iter().fold(0.0, |acc, p| acc + p.x);
   let sum_y = points.iter().fold(0.0, |acc, p| acc + p.y);
   let sum_xx = points.iter().fold(0.0, |acc, p| acc + p.x.powf(2.0));
   // let sum_yy = points.iter().fold(0.0, |acc, p| acc + p.y.powf(2.0));
   let sum_xy = points.iter().fold(0.0, |acc, p| acc + p.x * p.y);
-  let n = points.len() as f32;
+  let n = points.len() as f64;
 
   let slope = (n * sum_xy - sum_x * sum_y) / (n * sum_xx - sum_x.powf(2.0));
   let intercept = sum_y / n - slope / n * sum_x;

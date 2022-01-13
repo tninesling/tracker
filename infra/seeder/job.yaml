@@ -7,5 +7,6 @@ spec:
     spec:
       containers:
         - name: seeder
-          image: seeder
+          image: seeder:latest
+          imagePullPolicy: Never
       restartPolicy: Never
