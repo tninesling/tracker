@@ -8,6 +8,7 @@ const localhostIP = '10.0.2.2'; // Points to localhost when inside Android emula
 const minikubeIP = '192.168.49.2';
 const host = 'http://$minikubeIP';
 
+// TODO handle errors and return Result instead of throwing
 Future<Trend> getCalorieTrend() async {
   final response = await http.get(Uri.parse('$host/trends/calories'));
 

@@ -38,17 +38,23 @@ Sleep
 
 ### Connecting to the DB
 
-- Open a shell with
-  ```
-  kubectl run cockroachdb -it \
-  --image=cockroachdb/cockroach:v21.2.3 \
-  --rm \
-  --restart=Never \
-  -- sql \
-  --insecure \
-  --host=cockroachdb-public \
-  --database=heath
-  ```
+Open a shell with
+```
+kubectl run cockroachdb -it \
+--image=cockroachdb/cockroach:v21.2.3 \
+--rm \
+--restart=Never \
+-- sql \
+--insecure \
+--host=cockroachdb-public \
+--database=heath
+```
+
+### Seeding the DB
+
+- Make sure your docker is pointing to the minikube env with `eval $(minikube docker-env)`
+- From `api/seeder` build the image with `docker build -t seeder:latest .`
+- Apply the `infra/seeder/job.yaml` manifest
 
 ## References
 
