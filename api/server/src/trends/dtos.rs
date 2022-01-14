@@ -7,6 +7,7 @@ use serde::Serialize;
 #[derive(Default, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Trend {
+  pub name: String,
   pub points: Vec<Point>,
   pub line: Line,
 }

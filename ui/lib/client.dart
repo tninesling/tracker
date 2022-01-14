@@ -10,11 +10,11 @@ const minikubeIP = '192.168.49.2';
 const host = 'http://$minikubeIP';
 
 // TODO handle errors and return Result instead of throwing
-Future<Trend> getCalorieTrend() async {
+Future<Iterable<Trend>> getWeightTrends() async {
   final response = await http.get(Uri.parse('$host/trends/calories'));
 
   if (response.statusCode == 200) {
-    return Trend.fromDto(TrendDto.fromJson(jsonDecode(response.body)));
+    return [Trend.fromDto(TrendDto.fromJson(jsonDecode(response.body)))];
   } else {
     throw Exception("Well, that wasn't fun...");
   }
@@ -50,16 +50,12 @@ Future<Trend> getProteinTrend() async {
   }
 }
 
-Future<Map<String, Trend>> getMacroTrends() async {
+Future<Iterable<Trend>> getMacroTrends() async {
   final response = await http.get(Uri.parse('$host/trends/macros?date=2022-01-01T07:42:44.811Z'));
 
   if (response.statusCode == 200) {
-    Map<String, dynamic> map = jsonDecode(response.body);
-    Map<String, Trend> ret = HashMap();
-    for (var entry in map.entries) {
-      ret[entry.key] = Trend.fromDto(TrendDto.fromJson(entry.value));
-    }
-    return ret;
+    List<dynamic> list = jsonDecode(response.body);
+    return list.map((t) => Trend.fromDto(TrendDto.fromJson(t)));
   } else {
     throw Exception("Well, that wasn't fun...");
   }

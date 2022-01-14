@@ -29,6 +29,7 @@ Map<String, dynamic> _$PointDtoToJson(PointDto instance) => <String, dynamic>{
     };
 
 TrendDto _$TrendDtoFromJson(Map<String, dynamic> json) => TrendDto(
+      json['name'] as String,
       (json['points'] as List<dynamic>)
           .map((e) => PointDto.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -36,6 +37,7 @@ TrendDto _$TrendDtoFromJson(Map<String, dynamic> json) => TrendDto(
     );
 
 Map<String, dynamic> _$TrendDtoToJson(TrendDto instance) => <String, dynamic>{
+      'name': instance.name,
       'points': instance.points,
       'line': instance.line,
     };

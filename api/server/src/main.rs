@@ -60,9 +60,6 @@ async fn main() -> Result<(), String> {
     api.register(ready).unwrap();
     api.register(get_spec).unwrap();
     api.register(get_calorie_trend).unwrap();
-    api.register(get_carb_trend).unwrap();
-    api.register(get_fat_trend).unwrap();
-    api.register(get_protein_trend).unwrap();
     api.register(get_macro_trends).unwrap();
 
     let mut file = File::create("spec.json").await.unwrap().into_std().await;
@@ -190,93 +187,7 @@ async fn get_calorie_trend(
     let trend_line = linear_regression(&points);
 
     Ok(HttpResponseOk(Trend {
-        points,
-        line: trend_line,
-    }))
-}
-
-#[endpoint {
-    method = GET,
-    path = "/trends/carbs",
-}]
-async fn get_carb_trend(
-    rqctx: Arc<RequestContext<ApiContext>>
-) -> Result<HttpResponseOk<Trend>, HttpError> {
-    let ctx = rqctx.context();
-    let ingredients = get_all_ingredients(&ctx.db_pool).await.unwrap(); // TODO handle error response
-
-    let mut points = Vec::with_capacity(ingredients.len());
-    let mut index = 0.0;
-    for ingredient in ingredients {
-        points.push(Point {
-            x: index,
-            y: ingredient.carb_grams as f64,
-            label: ingredient.name,
-        });
-        index += 1.0;
-    }
-
-    let trend_line = linear_regression(&points);
-
-    Ok(HttpResponseOk(Trend {
-        points,
-        line: trend_line,
-    }))
-}
-
-#[endpoint {
-    method = GET,
-    path = "/trends/fat",
-}]
-async fn get_fat_trend(
-    rqctx: Arc<RequestContext<ApiContext>>
-) -> Result<HttpResponseOk<Trend>, HttpError> {
-    let ctx = rqctx.context();
-    let ingredients = get_all_ingredients(&ctx.db_pool).await.unwrap(); // TODO handle error response
-
-    let mut points = Vec::with_capacity(ingredients.len());
-    let mut index = 0.0;
-    for ingredient in ingredients {
-        points.push(Point {
-            x: index,
-            y: ingredient.fat_grams as f64,
-            label: ingredient.name,
-        });
-        index += 1.0;
-    }
-
-    let trend_line = linear_regression(&points);
-
-    Ok(HttpResponseOk(Trend {
-        points,
-        line: trend_line,
-    }))
-}
-
-#[endpoint {
-    method = GET,
-    path = "/trends/protein",
-}]
-async fn get_protein_trend(
-    rqctx: Arc<RequestContext<ApiContext>>
-) -> Result<HttpResponseOk<Trend>, HttpError> {
-    let ctx = rqctx.context();
-    let ingredients = get_all_ingredients(&ctx.db_pool).await.unwrap(); // TODO handle error response
-
-    let mut points = Vec::with_capacity(ingredients.len());
-    let mut index = 0.0;
-    for ingredient in ingredients {
-        points.push(Point {
-            x: index,
-            y: ingredient.protein_grams as f64,
-            label: ingredient.name,
-        });
-        index += 1.0;
-    }
-
-    let trend_line = linear_regression(&points);
-
-    Ok(HttpResponseOk(Trend {
+        name: "calories".to_string(),
         points,
         line: trend_line,
     }))
@@ -289,7 +200,7 @@ async fn get_protein_trend(
 async fn get_macro_trends(
     rqctx: Arc<RequestContext<ApiContext>>,
     query: Query<MacroTrendsQuery>,
-) -> Result<HttpResponseOk<HashMap<String, Trend>>, HttpError> {
+) -> Result<HttpResponseOk<Vec<Trend>>, HttpError> {
     let ctx = rqctx.context();
     let trends = get_daily_macro_trends_since_date(
         &ctx.db_pool,

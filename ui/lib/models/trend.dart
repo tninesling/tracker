@@ -1,12 +1,14 @@
 import 'package:ui/dtos/trend.dart';
 
 class Trend {
+  final String name;
   final List<Point> points;
   final Line line;
 
-  Trend({required this.points, required this.line});
+  Trend({required this.name, required this.points, required this.line});
 
   factory Trend.fromDto(TrendDto dto) => Trend(
+    name: dto.name,
     points: dto.points.map(Point.fromDto).toList(),
     line: Line.fromDto(dto.line),
   );

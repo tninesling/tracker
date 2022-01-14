@@ -21,7 +21,11 @@ class TrendsScreen extends StatelessWidget {
 }
 
 class TrendChart extends StatefulWidget {
-  final toggles = ["carbs", "fat", "protein"];
+  final toggles = ["macros", "weight"];
+  final fetchCalls = [
+    getMacroTrends,
+    getWeightTrends,
+  ];
 
   TrendChart({Key? key}) : super(key: key);
 
@@ -31,7 +35,7 @@ class TrendChart extends StatefulWidget {
 
 class TrendChartState extends State<TrendChart> {
   late int selectedIndex;
-  late Future<Map<String, Trend>> trends;
+  late Future<Iterable<Trend>> trends;
 
   @override
   void initState() {
@@ -49,7 +53,7 @@ class TrendChartState extends State<TrendChart> {
   }
 
   Widget _buildChart() {
-    return AspectRatio(aspectRatio: 1.7, child: FutureBuilder<Map<String, Trend>>(
+    return AspectRatio(aspectRatio: 1.7, child: FutureBuilder<Iterable<Trend>>(
       future: trends,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
@@ -58,20 +62,9 @@ class TrendChartState extends State<TrendChart> {
           return const CircularProgressIndicator();
         }
         
-        // TODO Configure other macros and remove second !
-        var macro = widget.toggles[selectedIndex];
-        var trend = snapshot.data![macro];
-        var points = trend?.points ?? [];
-        double minX = points.fold(double.infinity, (acc, p) => min(acc, p.x));
-        double maxX = points.fold(double.negativeInfinity, (acc, p) => max(acc, p.x));
+        var trends = snapshot.data!;
 
-        return ScatterPlot(
-          points: points,
-          regressionLineEndpoints: trend == null ? [] : [
-            trend.line.pointAt(minX),
-            trend.line.pointAt(maxX),
-          ],
-        );
+        return ScatterPlot(trends: trends);
       }
     ));
   }
@@ -89,6 +82,7 @@ class TrendChartState extends State<TrendChart> {
       onChanged: (v) {
         setState(() {
           selectedIndex = v;
+          trends = widget.fetchCalls[v]();
         });
       },
     );

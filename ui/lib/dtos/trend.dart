@@ -28,10 +28,11 @@ class PointDto {
 
 @JsonSerializable()
 class TrendDto {
+  final String name;
   final List<PointDto> points;
   final LineDto line;
 
-  TrendDto(this.points, this.line);
+  TrendDto(this.name, this.points, this.line);
 
   factory TrendDto.fromJson(Map<String, dynamic> json) => _$TrendDtoFromJson(json);
 

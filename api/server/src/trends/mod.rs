@@ -32,7 +32,7 @@ pub async fn get_all_ingredients(db_pool: &PgPool) -> Result<Vec<Ingredient>, sq
     .await
 }
 
-pub async fn get_daily_macro_trends_since_date(db_pool: &PgPool, date: DateTime<Utc>) -> Result<HashMap<String, Trend>, sqlx::Error> {
+pub async fn get_daily_macro_trends_since_date(db_pool: &PgPool, date: DateTime<Utc>) -> Result<Vec<Trend>, sqlx::Error> {
   let rows: Vec<PgRow> = sqlx::query(r#"
     WITH ingredients_eaten AS (
       SELECT
@@ -61,12 +61,7 @@ pub async fn get_daily_macro_trends_since_date(db_pool: &PgPool, date: DateTime<
   .await?;
 
   if rows.len() < 1 {
-    let mut map: HashMap<String, Trend> = HashMap::new();
-    map.insert("calories".to_string(), Default::default());
-    map.insert("carbs".to_string(), Default::default());
-    map.insert("fat".to_string(), Default::default());
-    map.insert("protein".to_string(), Default::default());
-    return Ok(map);
+    return Ok(Vec::new());
   }
 
   let first_date: DateTime<Utc> = rows[0].get(0);
@@ -101,21 +96,24 @@ pub async fn get_daily_macro_trends_since_date(db_pool: &PgPool, date: DateTime<
   }).collect();
   let protein_trend = linear_regression(&protein_points);
 
-  let mut trend_map = HashMap::with_capacity(3);
-  trend_map.insert("carbs".to_string(), Trend {
+  let mut trends = Vec::with_capacity(3);
+  trends.push(Trend {
+    name: "carbs".to_string(),
     points: carb_points,
     line: carb_trend,
   });
-  trend_map.insert("fat".to_string(), Trend {
+  trends.push(Trend {
+    name: "fat".to_string(),
     points: fat_points,
     line: fat_trend,
   });
-  trend_map.insert("protein".to_string(), Trend {
+  trends.push(Trend {
+    name: "protein".to_string(),
     points: protein_points,
     line: protein_trend,
   });
 
-  Ok(trend_map)
+  Ok(trends)
 }
 
 pub fn linear_regression(points: &Vec<Point>) -> Line {
