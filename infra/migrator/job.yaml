@@ -9,4 +9,4 @@ spec:
       containers:
         - name: migrator
           image: migrator
-      restartPolicy: Never
+      restartPolicy: OnFailure
