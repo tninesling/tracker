@@ -21,19 +21,7 @@ class TrendsScreen extends StatelessWidget {
 }
 
 class TrendChart extends StatefulWidget {
-  final toggles = ["calories", "carbs", "fat", "protein"];
-  final mappers = [
-    (m) => m.calories,
-    (m) => m.carbGrams,
-    (m) => m.fatGrams,
-    (m) => m.proteinGrams,
-  ];
-  final fetchCalls = [
-    getCalorieTrend,
-    getCarbsTrend,
-    getFatTrend,
-    getProteinTrend,
-  ];
+  final toggles = ["carbs", "fat", "protein"];
 
   TrendChart({Key? key}) : super(key: key);
 
@@ -43,13 +31,13 @@ class TrendChart extends StatefulWidget {
 
 class TrendChartState extends State<TrendChart> {
   late int selectedIndex;
-  late Future<Trend> trend;
+  late Future<Map<String, Trend>> trends;
 
   @override
   void initState() {
     super.initState();
     selectedIndex = 0;
-    trend = getCalorieTrend();
+    trends = getMacroTrends();
   }
 
   @override
@@ -61,22 +49,25 @@ class TrendChartState extends State<TrendChart> {
   }
 
   Widget _buildChart() {
-    return AspectRatio(aspectRatio: 1.7, child: FutureBuilder<Trend>(
-      future: trend,
+    return AspectRatio(aspectRatio: 1.7, child: FutureBuilder<Map<String, Trend>>(
+      future: trends,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else if (!snapshot.hasData) {
           return const CircularProgressIndicator();
         }
-
-        var trend = snapshot.data!;
-        double minX = trend.points.fold(double.infinity, (acc, p) => min(acc, p.x));
-        double maxX = trend.points.fold(double.negativeInfinity, (acc, p) => max(acc, p.x));
+        
+        // TODO Configure other macros and remove second !
+        var macro = widget.toggles[selectedIndex];
+        var trend = snapshot.data![macro];
+        var points = trend?.points ?? [];
+        double minX = points.fold(double.infinity, (acc, p) => min(acc, p.x));
+        double maxX = points.fold(double.negativeInfinity, (acc, p) => max(acc, p.x));
 
         return ScatterPlot(
-          points: trend.points,
-          regressionLineEndpoints: [
+          points: points,
+          regressionLineEndpoints: trend == null ? [] : [
             trend.line.pointAt(minX),
             trend.line.pointAt(maxX),
           ],
@@ -98,7 +89,6 @@ class TrendChartState extends State<TrendChart> {
       onChanged: (v) {
         setState(() {
           selectedIndex = v;
-          trend = widget.fetchCalls[v]();
         });
       },
     );

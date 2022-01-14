@@ -61,7 +61,12 @@ pub async fn get_daily_macro_trends_since_date(db_pool: &PgPool, date: DateTime<
   .await?;
 
   if rows.len() < 1 {
-    return Ok(HashMap::new());
+    let mut map: HashMap<String, Trend> = HashMap::new();
+    map.insert("calories".to_string(), Default::default());
+    map.insert("carbs".to_string(), Default::default());
+    map.insert("fat".to_string(), Default::default());
+    map.insert("protein".to_string(), Default::default());
+    return Ok(map);
   }
 
   let first_date: DateTime<Utc> = rows[0].get(0);

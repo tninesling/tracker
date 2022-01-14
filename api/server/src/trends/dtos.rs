@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(Serialize, JsonSchema)]
+#[derive(Default, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Trend {
   pub points: Vec<Point>,
@@ -18,7 +18,7 @@ pub struct Point {
   pub label: String,
 }
 
-#[derive(Serialize, JsonSchema)]
+#[derive(Default, Serialize, JsonSchema)]
 pub struct Line {
   pub slope: f64,
   pub intercept: f64,

@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -44,6 +45,21 @@ Future<Trend> getProteinTrend() async {
 
   if (response.statusCode == 200) {
     return Trend.fromDto(TrendDto.fromJson(jsonDecode(response.body)));
+  } else {
+    throw Exception("Well, that wasn't fun...");
+  }
+}
+
+Future<Map<String, Trend>> getMacroTrends() async {
+  final response = await http.get(Uri.parse('$host/trends/macros?date=2022-01-01T07:42:44.811Z'));
+
+  if (response.statusCode == 200) {
+    Map<String, dynamic> map = jsonDecode(response.body);
+    Map<String, Trend> ret = HashMap();
+    for (var entry in map.entries) {
+      ret[entry.key] = Trend.fromDto(TrendDto.fromJson(entry.value));
+    }
+    return ret;
   } else {
     throw Exception("Well, that wasn't fun...");
   }
