@@ -13,19 +13,19 @@ use http::StatusCode;
 use hyper::Body;
 use sqlx::postgres::PgPool;
 use sqlx::postgres::PgPoolOptions;
-use tokio::fs::File;
-use trends::MacroTrendsQuery;
-use trends::Point;
-use trends::Trend;
-use trends::linear_regression;
-use std::collections::HashMap;
 use std::net::Ipv4Addr;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use tokio::fs::File;
+use trends::MacroTrendsQuery;
+use trends::Trend;
 
+use crate::error::Error;
+use crate::trends::extract_calorie_trend;
 use crate::trends::get_all_ingredients;
 use crate::trends::get_daily_macro_trends_since_date;
 
+mod error;
 mod trends;
 
 #[tokio::main]
@@ -63,24 +63,23 @@ async fn main() -> Result<(), String> {
     api.register(get_macro_trends).unwrap();
 
     let mut file = File::create("spec.json").await.unwrap().into_std().await;
-    api.openapi("Heath API", "0.0.1")
-        .write(&mut file)
-        .unwrap();
-
+    api.openapi("Heath API", "0.0.1").write(&mut file).unwrap();
 
     /*
      * The functions that implement our API endpoints will share this context.
      */
-    let db_pool = PgPoolOptions::new().connect("postgres://root@cockroachdb-public:26257/heath").await.unwrap();
+    let db_pool = PgPoolOptions::new()
+        .connect("postgres://root@cockroachdb-public:26257/heath")
+        .await
+        .unwrap();
     let api_context = ApiContext::new(db_pool);
 
     /*
      * Set up the server.
      */
-    let server =
-        HttpServerStarter::new(&config_dropshot, api, api_context, &log)
-            .map_err(|error| format!("failed to create server: {}", error))?
-            .start();
+    let server = HttpServerStarter::new(&config_dropshot, api, api_context, &log)
+        .map_err(|error| format!("failed to create server: {}", error))?
+        .start();
 
     /*
      * Wait for the server to stop.  Note that there's not any code to shut down
@@ -98,9 +97,7 @@ struct ApiContext {
 
 impl ApiContext {
     pub fn new(db_pool: PgPool) -> ApiContext {
-        ApiContext {
-            db_pool,
-        }
+        ApiContext { db_pool }
     }
 }
 
@@ -112,9 +109,7 @@ impl ApiContext {
     method = GET,
     path = "/live"
 }]
-async fn live(
-    _rqctx: Arc<RequestContext<ApiContext>>,
-) -> Result<HttpResponseOk<()>, HttpError> {
+async fn live(_rqctx: Arc<RequestContext<ApiContext>>) -> Result<HttpResponseOk<()>, HttpError> {
     Ok(HttpResponseOk(()))
 }
 
@@ -122,21 +117,22 @@ async fn live(
     method = GET,
     path = "/ready"
 }]
-async fn ready(
-    rqctx: Arc<RequestContext<ApiContext>>,
-) -> Result<HttpResponseOk<()>, HttpError> {
+async fn ready(rqctx: Arc<RequestContext<ApiContext>>) -> Result<HttpResponseOk<()>, HttpError> {
     let ctx = rqctx.context();
 
-    let db_check = sqlx::query("SELECT 1").fetch_one(&ctx.db_pool).await;
+    let db_check = sqlx::query("SELECT 1")
+        .fetch_one(&ctx.db_pool)
+        .await
+        .map_err(Error::DBError);
 
     match db_check {
         Ok(_) => Ok(HttpResponseOk(())),
-        Err(_) => Err(HttpError { // TODO log error
+        Err(_) => Err(HttpError {
             status_code: StatusCode::PRECONDITION_FAILED,
             error_code: Some("db-down".to_string()),
             internal_message: "(ノಠ益ಠ)ノ彡┻━┻ Damn database doesn't even work".to_string(),
             external_message: "Whoops!".to_string(),
-        })
+        }),
     }
 }
 
@@ -144,11 +140,9 @@ async fn ready(
     method = GET,
     path = "/spec",
 }]
-async fn get_spec(
-    _rqctx: Arc<RequestContext<ApiContext>>,
-) -> Result<Response<Body>, HttpError> {
+async fn get_spec(_rqctx: Arc<RequestContext<ApiContext>>) -> Result<Response<Body>, HttpError> {
     let file = File::open("spec.json").await.map_err(|_| {
-        HttpError { // TODO log error
+        HttpError {
             status_code: StatusCode::UNPROCESSABLE_ENTITY,
             error_code: Some("no-file".to_string()),
             internal_message: "(ノಠ益ಠ)ノ彡┻━┻ Cannot open spec file".to_string(),
@@ -160,7 +154,8 @@ async fn get_spec(
     Ok(Response::builder()
         .status(StatusCode::OK)
         .header(http::header::CONTENT_TYPE, "application/json".to_string())
-        .body(file_stream.into_body()).unwrap())
+        .body(file_stream.into_body())
+        .unwrap())
 }
 
 #[endpoint {
@@ -168,29 +163,15 @@ async fn get_spec(
     path = "/trends/calories",
 }]
 async fn get_calorie_trend(
-    rqctx: Arc<RequestContext<ApiContext>>
+    rqctx: Arc<RequestContext<ApiContext>>,
 ) -> Result<HttpResponseOk<Trend>, HttpError> {
     let ctx = rqctx.context();
-    let ingredients = get_all_ingredients(&ctx.db_pool).await.unwrap(); // TODO handle error response
 
-    let mut points = Vec::with_capacity(ingredients.len());
-    let mut index = 0.0;
-    for ingredient in ingredients {
-        points.push(Point {
-            x: index,
-            y: ingredient.calories as f64,
-            label: ingredient.name,
-        });
-        index += 1.0;
-    }
-
-    let trend_line = linear_regression(&points);
-
-    Ok(HttpResponseOk(Trend {
-        name: "calories".to_string(),
-        points,
-        line: trend_line,
-    }))
+    get_all_ingredients(&ctx.db_pool)
+        .await
+        .map(extract_calorie_trend)
+        .map(HttpResponseOk)
+        .map_err(|e| e.into())
 }
 
 #[endpoint {
@@ -202,12 +183,9 @@ async fn get_macro_trends(
     query: Query<MacroTrendsQuery>,
 ) -> Result<HttpResponseOk<Vec<Trend>>, HttpError> {
     let ctx = rqctx.context();
-    let trends = get_daily_macro_trends_since_date(
-        &ctx.db_pool,
-        query.into_inner().date
-    )
-    .await
-    .map_err(|_| HttpError::for_internal_error("(ノಠ益ಠ)ノ彡┻━┻ Damn DB doesn't work".to_string()))?;
-
-    Ok(HttpResponseOk(trends))
+    
+    get_daily_macro_trends_since_date(&ctx.db_pool, query.into_inner().date)
+        .await
+        .map(HttpResponseOk)
+        .map_err(|e| e.into())
 }
