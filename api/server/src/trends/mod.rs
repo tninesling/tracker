@@ -4,32 +4,13 @@ mod models;
 pub use dtos::*;
 pub use models::*;
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 use chrono::DateTime;
-use chrono::Datelike;
 use chrono::Utc;
-use sqlx::postgres::PgRow;
 use sqlx::PgPool;
-use sqlx::Row;
 
 pub async fn get_all_ingredients(db_pool: &PgPool) -> Result<Vec<Ingredient>> {
-    sqlx::query(
-        r#"
-        SELECT id, name, calories, carb_grams, fat_grams, protein_grams
-        FROM ingredients
-    "#,
-    )
-    .map(|row: PgRow| Ingredient {
-        id: row.get(0),
-        name: row.get(1),
-        calories: row.get(2),
-        carb_grams: row.get(3),
-        fat_grams: row.get(4),
-        protein_grams: row.get(5),
-    })
-    .fetch_all(db_pool)
-    .await
-    .map_err(Error::DBError)
+    Ingredient::fetch_all(db_pool).await
 }
 
 pub fn extract_calorie_trend(ingredients: Vec<Ingredient>) -> Trend {
@@ -57,111 +38,69 @@ pub async fn get_daily_macro_trends_since_date(
     db_pool: &PgPool,
     date: DateTime<Utc>,
 ) -> Result<Vec<Trend>> {
-    let rows: Vec<PgRow> = sqlx::query(
-        r#"
-    WITH ingredients_eaten AS (
-      SELECT
-        DATE_TRUNC('day', m.date) AS day,
-        i.carb_grams AS carb_grams,
-        i.fat_grams AS fat_grams,
-        i.protein_grams AS protein_grams
-      FROM meals m
-        JOIN meals_ingredients mi
-        ON m.id = mi.meals_id
-        JOIN ingredients i
-        ON mi.ingredients_id = i.id
-      WHERE m.date > $1
-    )
-    SELECT
-      day,
-      SUM(carb_grams) AS carb_grams,
-      SUM(fat_grams) AS fat_grams,
-      SUM(protein_grams) AS protein_grams
-    FROM ingredients_eaten
-    GROUP BY day
-    ORDER BY day ASC
-  "#,
-    )
-    .bind(date)
-    .fetch_all(db_pool)
-    .await
-    .map_err(Error::DBError)?;
+    let summaries = DailyMacroSummary::fetch_since_date(db_pool, date).await?;
 
-    if rows.len() < 1 {
-        return Ok(Vec::new());
+    if summaries.len() < 1 {
+        return Ok(Default::default());
     }
 
-    let first_date: DateTime<Utc> = rows[0].get(0);
+    let mut trends = Vec::with_capacity(3);
+    trends.push(extract_carb_trend(&summaries));
+    trends.push(extract_fat_trend(&summaries));
+    trends.push(extract_protein_trend(&summaries));
 
-    let carb_points = rows
+    Ok(trends)
+}
+
+fn extract_carb_trend(summaries: &Vec<DailyMacroSummary>) -> Trend {
+    let first_date: DateTime<Utc> = summaries[0].date;
+    let carb_points = summaries
         .iter()
-        .map(|row| {
-            let date: DateTime<Utc> = row.get(0);
-            let carb_grams: f64 = row.get(1);
-            let days_since_first_date = (date - first_date).num_days() as f64;
-            let label = format!("{}-{}-{}", date.year(), date.month(), date.day());
-
+        .map(|dms| {
             Point {
-                x: days_since_first_date,
-                y: carb_grams,
-                label,
+                x: (dms.date - first_date).num_days() as f64,
+                y: dms.carb_grams as f64,
+                label: dms.date.format("%Y-%m-%d").to_string(),
             }
         })
         .collect();
     let carb_trend = linear_regression(&carb_points);
 
-    let fat_points = rows
-        .iter()
-        .map(|row| {
-            let date: DateTime<Utc> = row.get(0);
-            let fat_grams: f64 = row.get(2);
-            let days_since_first_date = (date - first_date).num_days() as f64;
-            let label = format!("{}-{}-{}", date.year(), date.month(), date.day());
+    Trend { name: "carb_grams".to_string(), points: carb_points, line: carb_trend }
+}
 
+fn extract_fat_trend(summaries: &Vec<DailyMacroSummary>) -> Trend {
+    let first_date: DateTime<Utc> = summaries[0].date;
+    let fat_points = summaries
+        .iter()
+        .map(|dms| {
             Point {
-                x: days_since_first_date,
-                y: fat_grams,
-                label,
+                x: (dms.date - first_date).num_days() as f64,
+                y: dms.fat_grams as f64,
+                label: dms.date.format("%Y-%m-%d").to_string(),
             }
         })
         .collect();
     let fat_trend = linear_regression(&fat_points);
 
-    let protein_points = rows
-        .iter()
-        .map(|row| {
-            let date: DateTime<Utc> = row.get(0);
-            let protein_grams: f64 = row.get(3);
-            let days_since_first_date = (date - first_date).num_days() as f64;
-            let label = format!("{}-{}-{}", date.year(), date.month(), date.day());
+    Trend { name: "fat_grams".to_string(), points: fat_points, line: fat_trend }
+}
 
+fn extract_protein_trend(summaries: &Vec<DailyMacroSummary>) -> Trend {
+    let first_date: DateTime<Utc> = summaries[0].date;
+    let protein_points = summaries
+        .iter()
+        .map(|dms| {
             Point {
-                x: days_since_first_date,
-                y: protein_grams,
-                label,
+                x: (dms.date - first_date).num_days() as f64,
+                y: dms.protein_grams as f64,
+                label: dms.date.format("%Y-%m-%d").to_string(),
             }
         })
         .collect();
     let protein_trend = linear_regression(&protein_points);
 
-    let mut trends = Vec::with_capacity(3);
-    trends.push(Trend {
-        name: "carbs".to_string(),
-        points: carb_points,
-        line: carb_trend,
-    });
-    trends.push(Trend {
-        name: "fat".to_string(),
-        points: fat_points,
-        line: fat_trend,
-    });
-    trends.push(Trend {
-        name: "protein".to_string(),
-        points: protein_points,
-        line: protein_trend,
-    });
-
-    Ok(trends)
+    Trend { name: "protein_grams".to_string(), points: protein_points, line: protein_trend }
 }
 
 pub fn linear_regression(points: &Vec<Point>) -> Line {
