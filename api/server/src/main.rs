@@ -21,11 +21,13 @@ use trends::MacroTrendsQuery;
 use trends::Trend;
 
 use crate::error::Error;
+use crate::storage::Postgres;
 use crate::trends::extract_calorie_trend;
 use crate::trends::get_all_ingredients;
 use crate::trends::get_daily_macro_trends_since_date;
 
 mod error;
+mod storage;
 mod trends;
 
 #[tokio::main]
@@ -141,13 +143,11 @@ async fn ready(rqctx: Arc<RequestContext<ApiContext>>) -> Result<HttpResponseOk<
     path = "/spec",
 }]
 async fn get_spec(_rqctx: Arc<RequestContext<ApiContext>>) -> Result<Response<Body>, HttpError> {
-    let file = File::open("spec.json").await.map_err(|_| {
-        HttpError {
-            status_code: StatusCode::UNPROCESSABLE_ENTITY,
-            error_code: Some("no-file".to_string()),
-            internal_message: "(ノಠ益ಠ)ノ彡┻━┻ Cannot open spec file".to_string(),
-            external_message: "Whoops!".to_string(),
-        }
+    let file = File::open("spec.json").await.map_err(|_| HttpError {
+        status_code: StatusCode::UNPROCESSABLE_ENTITY,
+        error_code: Some("no-file".to_string()),
+        internal_message: "(ノಠ益ಠ)ノ彡┻━┻ Cannot open spec file".to_string(),
+        external_message: "Whoops!".to_string(),
     })?;
     let file_stream = hyper_staticfile::FileBytesStream::new(file);
 
@@ -166,8 +166,9 @@ async fn get_calorie_trend(
     rqctx: Arc<RequestContext<ApiContext>>,
 ) -> Result<HttpResponseOk<Trend>, HttpError> {
     let ctx = rqctx.context();
+    let db = Postgres::new(&ctx.db_pool);
 
-    get_all_ingredients(&ctx.db_pool)
+    get_all_ingredients(&db)
         .await
         .map(extract_calorie_trend)
         .map(HttpResponseOk)
@@ -183,8 +184,9 @@ async fn get_macro_trends(
     query: Query<MacroTrendsQuery>,
 ) -> Result<HttpResponseOk<Vec<Trend>>, HttpError> {
     let ctx = rqctx.context();
-    
-    get_daily_macro_trends_since_date(&ctx.db_pool, query.into_inner().date)
+    let db = Postgres::new(&ctx.db_pool);
+
+    get_daily_macro_trends_since_date(&db, query.into_inner().date)
         .await
         .map(HttpResponseOk)
         .map_err(|e| e.into())
