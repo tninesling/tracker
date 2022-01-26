@@ -1,10 +1,12 @@
 use crate::error::Error;
 use crate::error::Result;
+use crate::meals::CreateIngredientRequest;
+use crate::meals::Ingredient;
 use crate::storage::Database;
 use crate::trends::DailyMacroSummary;
-use crate::trends::Ingredient;
 use async_trait::async_trait;
 use sqlx::PgPool;
+use uuid::Uuid;
 
 pub struct Postgres<'a> {
     connection_pool: &'a PgPool,
@@ -18,10 +20,33 @@ impl<'a> Postgres<'a> {
 
 #[async_trait]
 impl Database for Postgres<'_> {
-    async fn fetch_all_ingredients(&self) -> Result<Vec<crate::trends::Ingredient>> {
+    async fn create_ingredient(&self, req: &CreateIngredientRequest) -> Result<Uuid> {
+        let id = sqlx::query_scalar(
+            r#"
+            INSERT INTO ingredients
+                (name, amount_grams, calories, carb_grams, fat_grams, protein_grams)
+            VALUES
+                ($1, $2, $3, $4, $5, $6)
+            RETURNING id
+        "#,
+        )
+        .bind(req.name.to_string())
+        .bind(req.amount_grams)
+        .bind(req.calories)
+        .bind(req.carb_grams)
+        .bind(req.fat_grams)
+        .bind(req.protein_grams)
+        .fetch_one(self.connection_pool)
+        .await
+        .map_err(Error::DBError)?;
+
+        Ok(id)
+    }
+
+    async fn get_all_ingredients(&self) -> Result<Vec<Ingredient>> {
         sqlx::query_as::<_, Ingredient>(
             r#"
-            SELECT id, name, calories, carb_grams, fat_grams, protein_grams
+            SELECT id, name, amount_grams, calories, carb_grams, fat_grams, protein_grams
             FROM ingredients
         "#,
         )
@@ -30,7 +55,7 @@ impl Database for Postgres<'_> {
         .map_err(Error::DBError)
     }
 
-    async fn fetch_daily_summaries(
+    async fn get_daily_summaries(
         &self,
         since: chrono::DateTime<chrono::Utc>,
     ) -> Result<Vec<DailyMacroSummary>> {

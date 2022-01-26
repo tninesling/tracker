@@ -1,15 +1,18 @@
 mod postgres;
 use chrono::{DateTime, Utc};
 pub use postgres::*;
+use uuid::Uuid;
 
 use crate::error::Result;
+use crate::meals::{CreateIngredientRequest, Ingredient};
 use crate::trends::DailyMacroSummary;
-use crate::trends::Ingredient;
 use async_trait::async_trait;
 
 #[async_trait]
 pub trait Database {
-    async fn fetch_all_ingredients(&self) -> Result<Vec<Ingredient>>;
+    async fn create_ingredient(&self, req: &CreateIngredientRequest) -> Result<Uuid>;
 
-    async fn fetch_daily_summaries(&self, since: DateTime<Utc>) -> Result<Vec<DailyMacroSummary>>;
+    async fn get_all_ingredients(&self) -> Result<Vec<Ingredient>>;
+
+    async fn get_daily_summaries(&self, since: DateTime<Utc>) -> Result<Vec<DailyMacroSummary>>;
 }

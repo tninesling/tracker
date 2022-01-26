@@ -5,6 +5,7 @@ pub use dtos::*;
 pub use models::*;
 
 use crate::error::Result;
+use crate::meals::Ingredient;
 use crate::storage::Database;
 use chrono::DateTime;
 use chrono::Utc;
@@ -13,7 +14,7 @@ pub async fn get_all_ingredients<D>(db: &D) -> Result<Vec<Ingredient>>
 where
     D: Database,
 {
-    db.fetch_all_ingredients().await
+    db.get_all_ingredients().await
 }
 
 pub fn extract_calorie_trend(ingredients: Vec<Ingredient>) -> Trend {
@@ -41,7 +42,7 @@ pub async fn get_daily_macro_trends_since_date<D>(db: &D, date: DateTime<Utc>) -
 where
     D: Database,
 {
-    let summaries = db.fetch_daily_summaries(date).await?;
+    let summaries = db.get_daily_summaries(date).await?;
 
     if summaries.len() < 1 {
         return Ok(Default::default());
