@@ -36,10 +36,19 @@ pub async fn create_server() -> Result<HttpServerStarter<ApiContext>, String> {
         bind_address: SocketAddr::from((Ipv4Addr::new(0, 0, 0, 0), 8080)),
         request_body_max_bytes: 1024,
     };
+    let api = describe_api()?;
+    let spec_file = File::create("spec.json")
+        .await
+        .map_err(|e| format!("{}", e))?;
+    let mut spec_file = spec_file.into_std().await;
+
+    api.openapi("Heath API", env!("CARGO_PKG_VERSION"))
+        .write(&mut spec_file)
+        .unwrap();
 
     HttpServerStarter::new(
         &config_dropshot,
-        describe_api()?,
+        api,
         create_context().await?,
         &create_logger()?,
     )
