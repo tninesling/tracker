@@ -1,7 +1,5 @@
-import 'dart:math';
-
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
-import 'package:ui/client.dart';
+import 'package:openapi/api.dart';
 import 'package:ui/atoms/scatter_plot.dart';
 import 'package:ui/molecules/bottom_nav.dart';
 import 'package:ui/models/trend.dart';
@@ -20,6 +18,7 @@ class TrendsScreen extends StatelessWidget {
   }
 }
 
+// TODO integrate generated client
 class TrendChart extends StatefulWidget {
   final toggles = ["macros", "weight"];
   final fetchCalls = [
@@ -53,20 +52,21 @@ class TrendChartState extends State<TrendChart> {
   }
 
   Widget _buildChart() {
-    return AspectRatio(aspectRatio: 1.7, child: FutureBuilder<Iterable<Trend>>(
-      future: trends,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else if (!snapshot.hasData) {
-          return const CircularProgressIndicator();
-        }
-        
-        var trends = snapshot.data!;
+    return AspectRatio(
+        aspectRatio: 1.7,
+        child: FutureBuilder<Iterable<Trend>>(
+            future: trends,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              }
 
-        return ScatterPlot(trends: trends);
-      }
-    ));
+              var trends = snapshot.data!;
+
+              return ScatterPlot(trends: trends);
+            }));
   }
 
   Widget _buildToggle() {

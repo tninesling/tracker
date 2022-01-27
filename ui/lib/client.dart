@@ -1,11 +1,10 @@
-import 'dart:collection';
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import 'package:ui/dtos/trend.dart';
 import 'package:ui/models/trend.dart';
 
-const localhostIP = '10.0.2.2'; // Points to localhost when inside Android emulator
+const localhostIP =
+    '10.0.2.2'; // Points to localhost when inside Android emulator
 const minikubeIP = '192.168.49.2';
 const host = 'http://$minikubeIP';
 
@@ -51,7 +50,8 @@ Future<Trend> getProteinTrend() async {
 }
 
 Future<Iterable<Trend>> getMacroTrends() async {
-  final response = await http.get(Uri.parse('$host/trends/macros?date=2022-01-01T07:42:44.811Z'));
+  final response = await http
+      .get(Uri.parse('$host/trends/macros?date=2022-01-01T07:42:44.811Z'));
 
   if (response.statusCode == 200) {
     List<dynamic> list = jsonDecode(response.body);

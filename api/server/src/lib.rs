@@ -31,13 +31,15 @@ use tokio::fs::File;
 use trends::MacroTrendsQuery;
 use trends::Trend;
 
+const SPEC_FILE: &str = "spec.json";
+
 pub async fn create_server() -> Result<HttpServerStarter<ApiContext>, String> {
     let config_dropshot: ConfigDropshot = ConfigDropshot {
         bind_address: SocketAddr::from((Ipv4Addr::new(0, 0, 0, 0), 8080)),
         request_body_max_bytes: 1024,
     };
     let api = describe_api()?;
-    let spec_file = File::create("spec.json")
+    let spec_file = File::create(SPEC_FILE)
         .await
         .map_err(|e| format!("{}", e))?;
     let mut spec_file = spec_file.into_std().await;
@@ -132,7 +134,7 @@ async fn ready(rqctx: Arc<RequestContext<ApiContext>>) -> Result<HttpResponseOk<
     path = "/spec",
 }]
 async fn get_spec(_rqctx: Arc<RequestContext<ApiContext>>) -> Result<Response<Body>, HttpError> {
-    let file = File::open("spec.json").await.map_err(|_| HttpError {
+    let file = File::open(SPEC_FILE).await.map_err(|_| HttpError {
         status_code: StatusCode::UNPROCESSABLE_ENTITY,
         error_code: Some("no-file".to_string()),
         internal_message: "(ノಠ益ಠ)ノ彡┻━┻ Cannot open spec file".to_string(),
