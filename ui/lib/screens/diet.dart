@@ -1,30 +1,42 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
+import 'package:ui/atoms/ingredient.dart';
+import 'package:ui/atoms/text_from_the_depths.dart';
+import 'package:ui/client.dart';
 import 'package:ui/molecules/bottom_nav.dart';
-
-import '../state.dart';
-import '../atoms/text_from_the_depths.dart';
+import 'package:ui/state.dart';
 
 class DietScreen extends StatelessWidget {
-  const DietScreen({Key? key}) : super(key: key);
+  DietScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // TODO: Make sure this doesn't blow up on failure
+    apiClient.getIngredients().then(context.read<DietState>().setIngredients);
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.only(top: 64),
-        child: Column(children: [
-          const TextFromTheDepths(text: "Eat something?"),
-          Consumer<DietState>(builder: (context, state, child) {
-            return _buildIndicators(context, state);
-          }),
-        ]),
+        child: Consumer<DietState>(builder: (context, state, child) {
+          return ListView(
+              children: state
+                  .ingredients()
+                  .map((ingredient) => Ingredient(ingredient: ingredient))
+                  .toList());
+        }),
       ),
       bottomNavigationBar: const BottomNav(groupValue: "Diet"),
     );
   }
+}
 
-  Widget _buildIndicators(BuildContext context, DietState state) {
+class Indicators extends StatelessWidget {
+  final DietState state;
+
+  Indicators({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
     final values = [
       Target(
           name: "Calories", value: 1540, targetValue: state.targetCalories()),
@@ -70,8 +82,7 @@ class DietScreen extends StatelessWidget {
 
     return Colors.red.shade300;
   }
-
- }
+}
 
 class Target {
   final String name;

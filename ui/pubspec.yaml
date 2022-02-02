@@ -45,7 +45,7 @@ dependencies:
   charts_flutter: ^0.12.0
 
   openapi:
-    path: ../client/dart
+    path: ../api/client/dart
 
 dev_dependencies:
   flutter_test:

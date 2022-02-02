@@ -19,7 +19,6 @@ class TrendsScreen extends StatelessWidget {
 }
 
 class TrendChart extends StatefulWidget {
-  final ApiClient apiClient = OpenapiClientAdapter();
   final toggles = ["macros", "weight"];
 
   TrendChart({Key? key}) : super(key: key);
@@ -36,8 +35,8 @@ class TrendChartState extends State<TrendChart> {
   void initState() {
     super.initState();
     selectedIndex = 0;
-    trends = widget.apiClient
-        .getMacroTrends(DateTime.now().subtract(Duration(days: 60)));
+    trends =
+        apiClient.getMacroTrends(DateTime.now().subtract(Duration(days: 60)));
   }
 
   @override
@@ -99,7 +98,7 @@ class TrendChartState extends State<TrendChart> {
   Future<Iterable<Trend>> _getTrendsForTab(int index) {
     switch (index) {
       default:
-        return widget.apiClient
+        return apiClient
             .getMacroTrends(DateTime.now().subtract(Duration(days: 60)));
     }
   }

@@ -1,13 +1,23 @@
 import 'package:openapi/api.dart' as openapi;
+import 'package:ui/models/meal.dart';
 import 'package:ui/models/trend.dart';
 
 abstract class ApiClient {
+  Future<Iterable<Ingredient>> getIngredients();
   Future<Iterable<Trend>> getMacroTrends(DateTime since);
 }
 
 class OpenapiClientAdapter implements ApiClient {
-  final openapiClient =
-      openapi.DefaultApi(openapi.ApiClient(basePath: 'http://192.168.49.2'));
+  final openapi.DefaultApi openapiClient;
+
+  OpenapiClientAdapter({required this.openapiClient});
+
+  @override
+  Future<Iterable<Ingredient>> getIngredients() async {
+    var ingredients = await openapiClient.getAllIngredients();
+
+    return ingredients.map(Ingredient.fromOpenapi);
+  }
 
   @override
   Future<Iterable<Trend>> getMacroTrends(DateTime since) async {
@@ -17,6 +27,9 @@ class OpenapiClientAdapter implements ApiClient {
   }
 }
 
+ApiClient apiClient = OpenapiClientAdapter(
+    openapiClient:
+        openapi.DefaultApi(openapi.ApiClient(basePath: 'http://192.168.49.2')));
 /*
 const localhostIP =
     '10.0.2.2'; // Points to localhost when inside Android emulator

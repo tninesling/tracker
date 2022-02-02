@@ -4,8 +4,8 @@ use crate::storage::Database;
 use crate::storage::Postgres;
 use crate::ApiContext;
 use dropshot::endpoint;
-use dropshot::HttpResponseCreated;
 use dropshot::HttpError;
+use dropshot::HttpResponseCreated;
 use dropshot::HttpResponseOk;
 use dropshot::RequestContext;
 use dropshot::TypedBody;
@@ -34,7 +34,7 @@ pub async fn get_all_ingredients(
 }]
 pub async fn create_ingredient(
     rqctx: Arc<RequestContext<ApiContext>>,
-    req: TypedBody<CreateIngredientRequest>
+    req: TypedBody<CreateIngredientRequest>,
 ) -> Result<HttpResponseCreated<Ingredient>, HttpError> {
     let ctx = rqctx.context();
     let db = Postgres::new(&ctx.db_pool);

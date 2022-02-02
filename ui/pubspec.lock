@@ -383,7 +383,7 @@ packages:
   openapi:
     dependency: "direct main"
     description:
-      path: "../client/dart"
+      path: "../api/client/dart"
       relative: true
     source: path
     version: "1.0.0"

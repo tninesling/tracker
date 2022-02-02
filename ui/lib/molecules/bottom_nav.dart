@@ -18,9 +18,9 @@ class BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: "bottomNav",
-      child: NeumorphicBackground(
-        child: Padding(
+        tag: "bottomNav",
+        child: NeumorphicBackground(
+            child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 32),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -31,10 +31,7 @@ class BottomNav extends StatelessWidget {
                 groupValue: groupValue,
                 onChanged: (str) {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (ctx) => TrendsScreen()
-                    )
-                  );
+                      MaterialPageRoute(builder: (ctx) => TrendsScreen()));
                 },
               ),
               NeumorphicRadio(
@@ -42,11 +39,8 @@ class BottomNav extends StatelessWidget {
                 value: "Exercise",
                 groupValue: groupValue,
                 onChanged: (str) {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (ctx) => const ExerciseScreen()
-                    )
-                  );
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (ctx) => const ExerciseScreen()));
                 },
               ),
               NeumorphicRadio(
@@ -55,10 +49,7 @@ class BottomNav extends StatelessWidget {
                 groupValue: groupValue,
                 onChanged: (str) {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (ctx) => const DietScreen()
-                    )
-                  );
+                      MaterialPageRoute(builder: (ctx) => DietScreen()));
                 },
               ),
               NeumorphicRadio(
@@ -67,10 +58,7 @@ class BottomNav extends StatelessWidget {
                 groupValue: groupValue,
                 onChanged: (str) {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (ctx) => const SleepScreen()
-                    )
-                  );
+                      MaterialPageRoute(builder: (ctx) => const SleepScreen()));
                 },
               ),
               NeumorphicRadio(
@@ -78,22 +66,18 @@ class BottomNav extends StatelessWidget {
                 value: "Add",
                 groupValue: groupValue,
                 onChanged: (str) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (ctx) {
-                        switch (groupValue) {
-                          case "Diet":
-                            return const AddDietScreen();
-                          case "Exercise":
-                            return const AddExerciseScreen();
-                          case "Sleep":
-                            return const AddSleepScreen();
-                          default:
-                            return const FeatureRequest();
-                        }
-                      }
-                    )
-                  );
+                  Navigator.of(context).push(MaterialPageRoute(builder: (ctx) {
+                    switch (groupValue) {
+                      case "Diet":
+                        return const AddDietScreen();
+                      case "Exercise":
+                        return const AddExerciseScreen();
+                      case "Sleep":
+                        return const AddSleepScreen();
+                      default:
+                        return const FeatureRequest();
+                    }
+                  }));
                 },
               ),
               NeumorphicRadio(
@@ -101,16 +85,12 @@ class BottomNav extends StatelessWidget {
                 value: "Settings",
                 groupValue: groupValue,
                 onChanged: (str) {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (ctx) => const SettingsScreen()
-                    )
-                  );
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (ctx) => const SettingsScreen()));
                 },
               ),
             ],
           ),
-        )
-      )
-  );
-}}
+        )));
+  }
+}

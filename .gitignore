@@ -3,5 +3,5 @@ Cargo.lock
 **/*.rs.bk
 *.db*
 
-client/dart/
+api/client/dart/
 node_modules/
