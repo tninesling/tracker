@@ -36,7 +36,8 @@ class TrendChartState extends State<TrendChart> {
   void initState() {
     super.initState();
     selectedIndex = 0;
-    trends = widget.apiClient.getMacroTrends(DateTime.now());
+    trends = widget.apiClient
+        .getMacroTrends(DateTime.now().subtract(Duration(days: 60)));
   }
 
   @override
@@ -98,7 +99,8 @@ class TrendChartState extends State<TrendChart> {
   Future<Iterable<Trend>> _getTrendsForTab(int index) {
     switch (index) {
       default:
-        return widget.apiClient.getMacroTrends(DateTime.now());
+        return widget.apiClient
+            .getMacroTrends(DateTime.now().subtract(Duration(days: 60)));
     }
   }
 }

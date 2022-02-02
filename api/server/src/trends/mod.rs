@@ -57,13 +57,13 @@ where
 }
 
 fn extract_carb_trend(summaries: &Vec<DailyMacroSummary>) -> Trend {
-    let first_date: DateTime<Utc> = summaries[0].date;
+    let first_date: DateTime<Utc> = summaries[0].day;
     let carb_points = summaries
         .iter()
         .map(|dms| Point {
-            x: (dms.date - first_date).num_days() as f64,
+            x: (dms.day - first_date).num_days() as f64,
             y: dms.carb_grams as f64,
-            label: dms.date.format("%Y-%m-%d").to_string(),
+            label: dms.day.format("%Y-%m-%d").to_string(),
         })
         .collect();
     let carb_trend = linear_regression(&carb_points);
@@ -76,13 +76,13 @@ fn extract_carb_trend(summaries: &Vec<DailyMacroSummary>) -> Trend {
 }
 
 fn extract_fat_trend(summaries: &Vec<DailyMacroSummary>) -> Trend {
-    let first_date: DateTime<Utc> = summaries[0].date;
+    let first_date: DateTime<Utc> = summaries[0].day;
     let fat_points = summaries
         .iter()
         .map(|dms| Point {
-            x: (dms.date - first_date).num_days() as f64,
+            x: (dms.day - first_date).num_days() as f64,
             y: dms.fat_grams as f64,
-            label: dms.date.format("%Y-%m-%d").to_string(),
+            label: dms.day.format("%Y-%m-%d").to_string(),
         })
         .collect();
     let fat_trend = linear_regression(&fat_points);
@@ -95,13 +95,13 @@ fn extract_fat_trend(summaries: &Vec<DailyMacroSummary>) -> Trend {
 }
 
 fn extract_protein_trend(summaries: &Vec<DailyMacroSummary>) -> Trend {
-    let first_date: DateTime<Utc> = summaries[0].date;
+    let first_date: DateTime<Utc> = summaries[0].day;
     let protein_points = summaries
         .iter()
         .map(|dms| Point {
-            x: (dms.date - first_date).num_days() as f64,
+            x: (dms.day - first_date).num_days() as f64,
             y: dms.protein_grams as f64,
-            label: dms.date.format("%Y-%m-%d").to_string(),
+            label: dms.day.format("%Y-%m-%d").to_string(),
         })
         .collect();
     let protein_trend = linear_regression(&protein_points);
