@@ -1,8 +1,8 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
-import 'package:openapi/api.dart';
 import 'package:ui/atoms/scatter_plot.dart';
-import 'package:ui/molecules/bottom_nav.dart';
+import 'package:ui/client.dart';
 import 'package:ui/models/trend.dart';
+import 'package:ui/molecules/bottom_nav.dart';
 
 class TrendsScreen extends StatelessWidget {
   const TrendsScreen({Key? key}) : super(key: key);
@@ -18,13 +18,9 @@ class TrendsScreen extends StatelessWidget {
   }
 }
 
-// TODO integrate generated client
 class TrendChart extends StatefulWidget {
+  final ApiClient apiClient = OpenapiClientAdapter();
   final toggles = ["macros", "weight"];
-  final fetchCalls = [
-    getMacroTrends,
-    getWeightTrends,
-  ];
 
   TrendChart({Key? key}) : super(key: key);
 
@@ -40,7 +36,7 @@ class TrendChartState extends State<TrendChart> {
   void initState() {
     super.initState();
     selectedIndex = 0;
-    trends = getMacroTrends();
+    trends = widget.apiClient.getMacroTrends(DateTime.now());
   }
 
   @override
@@ -82,7 +78,7 @@ class TrendChartState extends State<TrendChart> {
       onChanged: (v) {
         setState(() {
           selectedIndex = v;
-          trends = widget.fetchCalls[v]();
+          trends = _getTrendsForTab(v);
         });
       },
     );
@@ -97,5 +93,12 @@ class TrendChartState extends State<TrendChart> {
           child: Text(text,
               style: const TextStyle(fontWeight: FontWeight.normal))),
     );
+  }
+
+  Future<Iterable<Trend>> _getTrendsForTab(int index) {
+    switch (index) {
+      default:
+        return widget.apiClient.getMacroTrends(DateTime.now());
+    }
   }
 }

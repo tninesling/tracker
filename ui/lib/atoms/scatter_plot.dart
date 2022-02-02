@@ -12,13 +12,16 @@ class ScatterPlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScatterPlotChart(
-        trends.expand((t) => [_createPointSeries(t), _createRegressionLineSeries(t)]).toList(),
-        animate: false,
-        defaultRenderer: PointRendererConfig(),
-        customSeriesRenderers: [
-          LineRendererConfig(customRendererId: 'regressionLine')
-        ],
-      );
+      trends
+          .expand(
+              (t) => [_createPointSeries(t), _createRegressionLineSeries(t)])
+          .toList(),
+      animate: false,
+      defaultRenderer: PointRendererConfig(),
+      customSeriesRenderers: [
+        LineRendererConfig(customRendererId: 'regressionLine')
+      ],
+    );
   }
 
   Series<Point, num> _createPointSeries(Trend trend) {
@@ -33,7 +36,8 @@ class ScatterPlot extends StatelessWidget {
 
   Series<Point, num> _createRegressionLineSeries(Trend trend) {
     double minX = trend.points.fold(double.infinity, (acc, p) => min(acc, p.x));
-    double maxX = trend.points.fold(double.negativeInfinity, (acc, p) => max(acc, p.x));
+    double maxX =
+        trend.points.fold(double.negativeInfinity, (acc, p) => max(acc, p.x));
     var regressionLineEndpoints = [
       trend.line.pointAt(minX),
       trend.line.pointAt(maxX),

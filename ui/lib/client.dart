@@ -1,8 +1,23 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:ui/dtos/trend.dart';
+import 'package:openapi/api.dart' as openapi;
 import 'package:ui/models/trend.dart';
 
+abstract class ApiClient {
+  Future<Iterable<Trend>> getMacroTrends(DateTime since);
+}
+
+class OpenapiClientAdapter implements ApiClient {
+  final openapiClient =
+      openapi.DefaultApi(openapi.ApiClient(basePath: 'http://192.168.49.2'));
+
+  @override
+  Future<Iterable<Trend>> getMacroTrends(DateTime since) async {
+    var trends = await openapiClient.getMacroTrends(since);
+
+    return trends.map(Trend.fromOpenapi);
+  }
+}
+
+/*
 const localhostIP =
     '10.0.2.2'; // Points to localhost when inside Android emulator
 const minikubeIP = '192.168.49.2';
@@ -60,3 +75,4 @@ Future<Iterable<Trend>> getMacroTrends() async {
     throw Exception("Well, that wasn't fun...");
   }
 }
+*/
