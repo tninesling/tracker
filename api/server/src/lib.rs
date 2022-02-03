@@ -5,8 +5,6 @@ mod trends;
 
 use crate::error::Error;
 use crate::storage::Postgres;
-use crate::trends::extract_calorie_trend;
-use crate::trends::get_all_ingredients;
 use crate::trends::get_daily_macro_trends_since_date;
 use dropshot::endpoint;
 use dropshot::ApiDescription;
@@ -62,10 +60,9 @@ pub fn describe_api() -> Result<ApiDescription<ApiContext>, String> {
     api.register(live)?;
     api.register(ready)?;
     api.register(get_spec)?;
-    api.register(get_calorie_trend)?;
     api.register(get_macro_trends)?;
     api.register(crate::meals::routes::create_ingredient)?;
-    api.register(crate::meals::routes::get_all_ingredients)?;
+    api.register(crate::meals::routes::get_ingredients)?;
 
     Ok(api)
 }
@@ -147,23 +144,6 @@ async fn get_spec(_rqctx: Arc<RequestContext<ApiContext>>) -> Result<Response<Bo
         .header(http::header::CONTENT_TYPE, "application/json".to_string())
         .body(file_stream.into_body())
         .unwrap())
-}
-
-#[endpoint {
-    method = GET,
-    path = "/trends/calories",
-}]
-async fn get_calorie_trend(
-    rqctx: Arc<RequestContext<ApiContext>>,
-) -> Result<HttpResponseOk<Trend>, HttpError> {
-    let ctx = rqctx.context();
-    let db = Postgres::new(&ctx.db_pool);
-
-    get_all_ingredients(&db)
-        .await
-        .map(extract_calorie_trend)
-        .map(HttpResponseOk)
-        .map_err(|e| e.into())
 }
 
 #[endpoint {

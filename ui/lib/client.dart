@@ -14,9 +14,9 @@ class OpenapiClientAdapter implements ApiClient {
 
   @override
   Future<Iterable<Ingredient>> getIngredients() async {
-    var ingredients = await openapiClient.getAllIngredients();
+    var ingredientsPage = await openapiClient.getIngredients();
 
-    return ingredients.map(Ingredient.fromOpenapi);
+    return ingredientsPage.items.map(Ingredient.fromOpenapi);
   }
 
   @override

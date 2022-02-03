@@ -43,13 +43,17 @@ impl Database for Postgres<'_> {
         Ok(id)
     }
 
-    async fn get_all_ingredients(&self) -> Result<Vec<Ingredient>> {
+    async fn get_ingredients(&self, offset: &i32, limit: &u32) -> Result<Vec<Ingredient>> {
         sqlx::query_as::<_, Ingredient>(
             r#"
             SELECT id, name, amount_grams, calories, carb_grams, fat_grams, protein_grams
             FROM ingredients
+            OFFSET $1
+            LIMIT $2
         "#,
         )
+        .bind(offset)
+        .bind(limit)
         .fetch_all(self.connection_pool)
         .await
         .map_err(Error::DBError)

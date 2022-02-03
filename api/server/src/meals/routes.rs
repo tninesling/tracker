@@ -4,28 +4,54 @@ use crate::storage::Database;
 use crate::storage::Postgres;
 use crate::ApiContext;
 use dropshot::endpoint;
+use dropshot::EmptyScanParams;
 use dropshot::HttpError;
 use dropshot::HttpResponseCreated;
 use dropshot::HttpResponseOk;
+use dropshot::PaginationParams;
+use dropshot::Query;
 use dropshot::RequestContext;
+use dropshot::ResultsPage;
 use dropshot::TypedBody;
+use dropshot::WhichPage;
+use schemars::JsonSchema;
+use serde::Deserialize;
+use serde::Serialize;
 use std::sync::Arc;
 
-// TODO paginate
+#[derive(Deserialize, JsonSchema, Serialize)]
+pub struct OffsetPage {
+    offset: i32,
+}
+
 #[endpoint {
   method = GET,
   path = "/ingredients",
 }]
-pub async fn get_all_ingredients(
+pub async fn get_ingredients(
     rqctx: Arc<RequestContext<ApiContext>>,
-) -> Result<HttpResponseOk<Vec<Ingredient>>, HttpError> {
+    query: Query<PaginationParams<EmptyScanParams, OffsetPage>>,
+) -> Result<HttpResponseOk<ResultsPage<Ingredient>>, HttpError> {
     let ctx = rqctx.context();
     let db = Postgres::new(&ctx.db_pool);
 
-    db.get_all_ingredients()
+    let pag_params = query.into_inner();
+    let limit = rqctx.page_limit(&pag_params)?.get();
+    let offset = match &pag_params.page {
+        WhichPage::First(..) => &0,
+        WhichPage::Next(OffsetPage { offset }) => offset,
+    };
+
+    let ingredients = db
+        .get_ingredients(offset, &limit)
         .await
-        .map(HttpResponseOk)
-        .map_err(|e| e.into())
+        .map_err::<HttpError, _>(|e| e.into())?;
+    let next_offset = *offset + ingredients.len() as i32;
+    let results_page = ResultsPage::new(ingredients, &EmptyScanParams {}, |_, _| OffsetPage {
+        offset: next_offset,
+    });
+
+    results_page.map(HttpResponseOk)
 }
 
 #[endpoint {

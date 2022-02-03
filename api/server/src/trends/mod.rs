@@ -10,13 +10,6 @@ use crate::storage::Database;
 use chrono::DateTime;
 use chrono::Utc;
 
-pub async fn get_all_ingredients<D>(db: &D) -> Result<Vec<Ingredient>>
-where
-    D: Database,
-{
-    db.get_all_ingredients().await
-}
-
 pub fn extract_calorie_trend(ingredients: Vec<Ingredient>) -> Trend {
     let mut points = Vec::with_capacity(ingredients.len());
     let mut index = 0.0;
