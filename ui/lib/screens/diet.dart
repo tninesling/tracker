@@ -1,28 +1,35 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
 import 'package:ui/atoms/ingredient.dart';
-import 'package:ui/atoms/text_from_the_depths.dart';
 import 'package:ui/client.dart';
 import 'package:ui/molecules/bottom_nav.dart';
 import 'package:ui/state.dart';
 
 class DietScreen extends StatelessWidget {
-  DietScreen({Key? key}) : super(key: key);
+  const DietScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // TODO: Make sure this doesn't blow up on failure
-    apiClient.getIngredients().then(context.read<DietState>().setIngredients);
+    apiClient
+        .getFirstPageOfIngredients()
+        .then(context.read<DietState>().setIngredients);
 
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.only(top: 64),
         child: Consumer<DietState>(builder: (context, state, child) {
-          return ListView(
-              children: state
-                  .ingredients()
-                  .map((ingredient) => Ingredient(ingredient: ingredient))
-                  .toList());
+          return ListView.builder(
+            itemCount: state.ingredients().length,
+            itemBuilder: (context, index) {
+              if (index >= state.ingredients().length - 1) {
+                apiClient
+                    .getNextPageOfIngredients()
+                    .then(state.appendIngredients);
+              }
+              return Ingredient(ingredient: state.ingredients()[index]);
+            },
+          );
         }),
       ),
       bottomNavigationBar: const BottomNav(groupValue: "Diet"),

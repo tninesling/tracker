@@ -3,18 +3,38 @@ import 'package:ui/models/meal.dart';
 import 'package:ui/models/trend.dart';
 
 abstract class ApiClient {
-  Future<Iterable<Ingredient>> getIngredients();
+  Future<Iterable<Ingredient>> getFirstPageOfIngredients();
+  Future<Iterable<Ingredient>> getNextPageOfIngredients();
   Future<Iterable<Trend>> getMacroTrends(DateTime since);
 }
 
 class OpenapiClientAdapter implements ApiClient {
+  final ingredientPageSize = 20;
   final openapi.DefaultApi openapiClient;
+  late String? nextIngredientsPageToken;
 
   OpenapiClientAdapter({required this.openapiClient});
 
   @override
-  Future<Iterable<Ingredient>> getIngredients() async {
-    var ingredientsPage = await openapiClient.getIngredients();
+  Future<Iterable<Ingredient>> getFirstPageOfIngredients() async {
+    var ingredientsPage =
+        await openapiClient.getIngredients(limit: ingredientPageSize);
+
+    nextIngredientsPageToken = ingredientsPage.nextPage;
+
+    return ingredientsPage.items.map(Ingredient.fromOpenapi);
+  }
+
+  @override
+  Future<Iterable<Ingredient>> getNextPageOfIngredients() async {
+    if (nextIngredientsPageToken == null) {
+      return List.empty();
+    }
+
+    var ingredientsPage = await openapiClient.getIngredients(
+        limit: ingredientPageSize, pageToken: nextIngredientsPageToken);
+
+    nextIngredientsPageToken = ingredientsPage.nextPage;
 
     return ingredientsPage.items.map(Ingredient.fromOpenapi);
   }
