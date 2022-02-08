@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'package:openapi/api.dart' as openapi;
 import 'package:ui/models/meal.dart';
 import 'package:ui/models/trend.dart';
@@ -6,6 +7,7 @@ abstract class ApiClient {
   Future<Iterable<Ingredient>> getFirstPageOfIngredients();
   Future<Iterable<Ingredient>> getNextPageOfIngredients();
   Future<Ingredient> createIngredient(CreateIngredientRequest req);
+  Future<Meal> createMeal(CreateMealRequest req);
   Future<Iterable<Trend>> getMacroTrends(DateTime since);
 }
 
@@ -45,6 +47,12 @@ class OpenapiClientAdapter implements ApiClient {
     var ingredient = await openapiClient.createIngredient(req.toOpenapi());
 
     return Ingredient.fromOpenapi(ingredient);
+  }
+
+  @override
+  Future<Meal> createMeal(CreateMealRequest req) async {
+    // TODO: Actually make RPC
+    return Meal(date: DateTime.now(), ingredientAmounts: HashMap());
   }
 
   @override

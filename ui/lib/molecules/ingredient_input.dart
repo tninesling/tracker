@@ -4,9 +4,9 @@ import 'package:ui/models/meal.dart';
 import 'package:ui/client.dart';
 
 class IngredientInput extends StatefulWidget {
-  final Function() onSubmit;
+  final Function(Ingredient) onCreated;
 
-  const IngredientInput({Key? key, required this.onSubmit}) : super(key: key);
+  const IngredientInput({Key? key, required this.onCreated}) : super(key: key);
 
   @override
   IngredientInputState createState() => IngredientInputState();
@@ -66,15 +66,16 @@ class IngredientInputState extends State<IngredientInput> {
             child: const Text("Submit"),
             onPressed: () {
               if (_formKey.currentState!.validate()) {
-                apiClient.createIngredient(CreateIngredientRequest(
-                  name: name,
-                  amountGrams: amountGrams,
-                  calories: calories,
-                  carbGrams: carbGrams,
-                  fatGrams: fatGrams,
-                  proteinGrams: proteinGrams,
-                ));
-                widget.onSubmit();
+                apiClient
+                    .createIngredient(CreateIngredientRequest(
+                      name: name,
+                      amountGrams: amountGrams,
+                      calories: calories,
+                      carbGrams: carbGrams,
+                      fatGrams: fatGrams,
+                      proteinGrams: proteinGrams,
+                    ))
+                    .then(widget.onCreated);
               }
             },
           )

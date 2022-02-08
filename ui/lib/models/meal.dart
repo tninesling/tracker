@@ -2,9 +2,19 @@ import 'package:openapi/api.dart' as openapi;
 
 class Meal {
   final DateTime date;
-  final List<Ingredient> ingredients;
+  final Map<Ingredient, double> ingredientAmounts;
 
-  const Meal({required this.date, required this.ingredients});
+  const Meal({required this.date, required this.ingredientAmounts});
+}
+
+class CreateMealRequest {
+  final DateTime date;
+  final Map<Ingredient, double> ingredientAmounts;
+
+  const CreateMealRequest({
+    required this.date,
+    required this.ingredientAmounts,
+  });
 }
 
 class Ingredient {

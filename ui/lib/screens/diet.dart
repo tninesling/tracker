@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:ui/atoms/ingredient.dart';
 import 'package:ui/client.dart';
 import 'package:ui/molecules/bottom_nav.dart';
+import 'package:ui/molecules/ingredient_list.dart';
 import 'package:ui/state.dart';
 
 class DietScreen extends StatelessWidget {
@@ -18,18 +19,8 @@ class DietScreen extends StatelessWidget {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.only(top: 64),
-        child: Consumer<DietState>(builder: (context, state, child) {
-          return ListView.builder(
-            itemCount: state.ingredients().length,
-            itemBuilder: (context, index) {
-              if (index >= state.ingredients().length - 1) {
-                apiClient
-                    .getNextPageOfIngredients()
-                    .then(state.appendIngredients);
-              }
-              return Ingredient(ingredient: state.ingredients()[index]);
-            },
-          );
+        child: IngredientList(displayIngredient: (ingredient) {
+          return Ingredient(ingredient: ingredient);
         }),
       ),
       bottomNavigationBar: const BottomNav(groupValue: "Diet"),
