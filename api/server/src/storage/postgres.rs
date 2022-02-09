@@ -1,11 +1,17 @@
+use std::collections::HashMap;
+
 use crate::error::Error;
 use crate::error::Result;
 use crate::meals::CreateIngredientRequest;
+use crate::meals::CreateMealRequest;
 use crate::meals::Ingredient;
+use crate::meals::Meal;
 use crate::storage::Database;
 use crate::trends::DailyMacroSummary;
 use async_trait::async_trait;
 use sqlx::PgPool;
+use sqlx::Row;
+use sqlx::postgres::PgRow;
 use uuid::Uuid;
 
 pub struct Postgres<'a> {
@@ -15,6 +21,24 @@ pub struct Postgres<'a> {
 impl<'a> Postgres<'a> {
     pub fn new(connection_pool: &PgPool) -> Postgres {
         Postgres { connection_pool }
+    }
+
+    async fn get_ingredient_amounts(&self, meals_id: Uuid) -> Result<HashMap<Uuid, f32>> {
+        let rows = sqlx::query(r#"
+            SELECT ingredients_id, amount_grams
+            FROM meals_ingredients
+            WHERE meals_id = $1
+        "#)
+        .bind(meals_id)
+        .fetch_all(self.connection_pool)
+        .await?;
+
+        let mut amounts_by_ingredient_id = HashMap::new();
+        for row in rows {
+            amounts_by_ingredient_id.insert(row.get(0), row.get(1));
+        }
+
+        Ok(amounts_by_ingredient_id)
     }
 }
 
@@ -57,6 +81,64 @@ impl Database for Postgres<'_> {
         .fetch_all(self.connection_pool)
         .await
         .map_err(Error::DBError)
+    }
+
+    async fn create_meal(&self, req: &CreateMealRequest) -> Result<Uuid> {
+        let id: Uuid = sqlx::query_scalar(r#"
+                INSERT INTO meals
+                    (date)
+                VALUES
+                    ($1)
+                RETURNING id
+            "#)
+            .bind(req.date)
+            .fetch_one(self.connection_pool)
+            .await?;
+        
+        for (ingredients_id, amount_grams) in req.ingredient_amounts.iter() {
+            sqlx::query(r#"
+                INSERT INTO meals_ingredients
+                    (meals_id, ingredients_id, amount_grams)
+                VALUES
+                    ($1, $2, $3)
+            "#)
+            .bind(id)
+            .bind(ingredients_id)
+            .bind(amount_grams)
+            .fetch_one(self.connection_pool)
+            .await?;
+        }
+
+        Ok(id)
+    }
+
+    async fn get_meals(&self, offset: &i32, limit: &u32) -> Result<Vec<Meal>> {
+        let mut meals = Vec::with_capacity(*limit as usize);
+        let meal_rows: Vec<PgRow> = sqlx::query(r#"
+            SELECT id, date
+            FROM meals
+            OFFSET $1
+            LIMIT $2
+        "#)
+        .bind(offset)
+        .bind(limit)
+        .fetch_all(self.connection_pool)
+        .await?;
+
+        for row in meal_rows {
+            let id = row.get(0);
+            let date = row.get(1);
+            let meal = Meal::builder()
+                .id(id)
+                .date(date)
+                .ingredient_amounts(
+                    self.get_ingredient_amounts(id).await?
+                )
+                .build();
+            meals.push(meal);
+        }
+
+        Ok(meals)
     }
 
     async fn get_daily_summaries(

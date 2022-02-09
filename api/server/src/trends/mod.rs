@@ -5,31 +5,9 @@ pub use dtos::*;
 pub use models::*;
 
 use crate::error::Result;
-use crate::meals::Ingredient;
 use crate::storage::Database;
 use chrono::DateTime;
 use chrono::Utc;
-
-pub fn extract_calorie_trend(ingredients: Vec<Ingredient>) -> Trend {
-    let mut points = Vec::with_capacity(ingredients.len());
-    let mut index = 0.0;
-    for ingredient in ingredients {
-        points.push(Point {
-            x: index,
-            y: ingredient.calories as f64,
-            label: ingredient.name,
-        });
-        index += 1.0;
-    }
-
-    let trend_line = linear_regression(&points);
-
-    Trend {
-        name: "calories".to_string(),
-        points,
-        line: trend_line,
-    }
-}
 
 pub async fn get_daily_macro_trends_since_date<D>(db: &D, date: DateTime<Utc>) -> Result<Vec<Trend>>
 where

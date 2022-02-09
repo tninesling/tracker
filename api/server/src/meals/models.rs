@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use chrono::DateTime;
+use chrono::Utc;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
@@ -26,4 +29,19 @@ pub struct Ingredient {
     pub carb_grams: f32,
     pub fat_grams: f32,
     pub protein_grams: f32,
+}
+
+#[derive(Deserialize, JsonSchema, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateMealRequest {
+    pub date: DateTime<Utc>,
+    pub ingredient_amounts: HashMap<Uuid, f32>,
+}
+
+#[derive(Deserialize, JsonSchema, Serialize, TypedBuilder)]
+#[serde(rename_all = "camelCase")]
+pub struct Meal {
+    pub id: Uuid,
+    pub date: DateTime<Utc>,
+    pub ingredient_amounts: HashMap<Uuid, f32>,
 }

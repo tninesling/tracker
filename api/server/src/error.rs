@@ -13,3 +13,9 @@ impl From<Error> for HttpError {
         }
     }
 }
+
+impl From<sqlx::Error> for Error {
+    fn from(val: sqlx::Error) -> Self {
+        Error::DBError(val)
+    }
+}

@@ -63,6 +63,8 @@ pub fn describe_api() -> Result<ApiDescription<ApiContext>, String> {
     api.register(get_macro_trends)?;
     api.register(crate::meals::routes::create_ingredient)?;
     api.register(crate::meals::routes::get_ingredients)?;
+    api.register(crate::meals::routes::create_meal)?;
+    api.register(crate::meals::routes::get_meals)?;
 
     Ok(api)
 }
