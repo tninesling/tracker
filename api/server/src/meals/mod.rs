@@ -6,10 +6,12 @@ pub use models::*;
 use crate::error::Result;
 use crate::storage::Database;
 
-async fn create_ingredient<DB>(db: &DB, req: &CreateIngredientRequest) -> Result<Ingredient> where DB : Database {
-    db.create_ingredient(req)
-        .await
-        .map(|id| Ingredient::builder()
+async fn create_ingredient<DB>(db: &DB, req: &CreateIngredientRequest) -> Result<Ingredient>
+where
+    DB: Database,
+{
+    db.create_ingredient(req).await.map(|id| {
+        Ingredient::builder()
             .id(id)
             .name(req.name.to_string())
             .amount_grams(req.amount_grams)
@@ -18,16 +20,18 @@ async fn create_ingredient<DB>(db: &DB, req: &CreateIngredientRequest) -> Result
             .fat_grams(req.fat_grams)
             .protein_grams(req.protein_grams)
             .build()
-        )
+    })
 }
 
-async fn create_meal<DB>(db: &DB, req: CreateMealRequest) -> Result<Meal> where DB : Database {
-    db.create_meal(&req)
-        .await
-        .map(|id| Meal::builder()
+async fn create_meal<DB>(db: &DB, req: CreateMealRequest) -> Result<Meal>
+where
+    DB: Database,
+{
+    db.create_meal(&req).await.map(|id| {
+        Meal::builder()
             .id(id)
             .date(req.date)
             .ingredient_amounts(req.ingredient_amounts)
             .build()
-        )
+    })
 }

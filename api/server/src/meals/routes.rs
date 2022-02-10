@@ -78,31 +78,28 @@ pub async fn create_ingredient(
     method = GET,
     path = "/meals",
   }]
-  pub async fn get_meals(
-      rqctx: Arc<RequestContext<ApiContext>>,
-      query: Query<PaginationParams<EmptyScanParams, OffsetPage>>,
-  ) -> Result<HttpResponseOk<ResultsPage<Meal>>, HttpError> {
-      let ctx = rqctx.context();
-      let db = Postgres::new(&ctx.db_pool);
-  
-      let pag_params = query.into_inner();
-      let limit = rqctx.page_limit(&pag_params)?.get();
-      let offset = match &pag_params.page {
-          WhichPage::First(..) => &0,
-          WhichPage::Next(OffsetPage { offset }) => offset,
-      };
-  
-      let meals = db
-          .get_meals(offset, &limit)
-          .await
-          .map_err::<HttpError, _>(|e| e.into())?;
-      let next_offset = *offset + meals.len() as i32;
-      let results_page = ResultsPage::new(meals, &EmptyScanParams {}, |_, _| OffsetPage {
-          offset: next_offset,
-      });
-  
-      results_page.map(HttpResponseOk)
-  }
+pub async fn get_meals(
+    rqctx: Arc<RequestContext<ApiContext>>,
+    query: Query<PaginationParams<EmptyScanParams, OffsetPage>>,
+) -> Result<HttpResponseOk<ResultsPage<Meal>>, HttpError> {
+    let ctx = rqctx.context();
+    let db = Postgres::new(&ctx.db_pool);
+
+    let pag_params = query.into_inner();
+    let limit = rqctx.page_limit(&pag_params)?.get();
+    let offset = match &pag_params.page {
+        WhichPage::First(..) => &0,
+        WhichPage::Next(OffsetPage { offset }) => offset,
+    };
+
+    let meals = db.get_meals(offset, &limit).await?;
+    let next_offset = *offset + meals.len() as i32;
+    let results_page = ResultsPage::new(meals, &EmptyScanParams {}, |_, _| OffsetPage {
+        offset: next_offset,
+    })?;
+
+    Ok(HttpResponseOk(results_page))
+}
 
 #[endpoint {
     method = POST,

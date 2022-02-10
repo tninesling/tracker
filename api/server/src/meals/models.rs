@@ -1,10 +1,10 @@
-use std::collections::HashMap;
 use chrono::DateTime;
 use chrono::Utc;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
 use sqlx::FromRow;
+use std::collections::HashMap;
 use typed_builder::TypedBuilder;
 use uuid::Uuid;
 

@@ -1,7 +1,6 @@
-mod dtos;
 mod models;
+pub(crate) mod routes;
 
-pub use dtos::*;
 pub use models::*;
 
 use crate::error::Result;

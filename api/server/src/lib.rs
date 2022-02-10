@@ -4,8 +4,6 @@ mod storage;
 mod trends;
 
 use crate::error::Error;
-use crate::storage::Postgres;
-use crate::trends::get_daily_macro_trends_since_date;
 use dropshot::endpoint;
 use dropshot::ApiDescription;
 use dropshot::ConfigDropshot;
@@ -14,7 +12,6 @@ use dropshot::ConfigLoggingLevel;
 use dropshot::HttpError;
 use dropshot::HttpResponseOk;
 use dropshot::HttpServerStarter;
-use dropshot::Query;
 use dropshot::RequestContext;
 use http::Response;
 use http::StatusCode;
@@ -26,8 +23,6 @@ use std::net::Ipv4Addr;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::fs::File;
-use trends::MacroTrendsQuery;
-use trends::Trend;
 
 const SPEC_FILE: &str = "spec.json";
 
@@ -60,11 +55,11 @@ pub fn describe_api() -> Result<ApiDescription<ApiContext>, String> {
     api.register(live)?;
     api.register(ready)?;
     api.register(get_spec)?;
-    api.register(get_macro_trends)?;
     api.register(crate::meals::routes::create_ingredient)?;
     api.register(crate::meals::routes::get_ingredients)?;
     api.register(crate::meals::routes::create_meal)?;
     api.register(crate::meals::routes::get_meals)?;
+    api.register(crate::trends::routes::get_macro_trends)?;
 
     Ok(api)
 }
@@ -146,21 +141,4 @@ async fn get_spec(_rqctx: Arc<RequestContext<ApiContext>>) -> Result<Response<Bo
         .header(http::header::CONTENT_TYPE, "application/json".to_string())
         .body(file_stream.into_body())
         .unwrap())
-}
-
-#[endpoint {
-    method = GET,
-    path = "/trends/macros",
-}]
-async fn get_macro_trends(
-    rqctx: Arc<RequestContext<ApiContext>>,
-    query: Query<MacroTrendsQuery>,
-) -> Result<HttpResponseOk<Vec<Trend>>, HttpError> {
-    let ctx = rqctx.context();
-    let db = Postgres::new(&ctx.db_pool);
-
-    get_daily_macro_trends_since_date(&db, query.into_inner().date)
-        .await
-        .map(HttpResponseOk)
-        .map_err(|e| e.into())
 }

@@ -4,7 +4,7 @@ pub use postgres::*;
 use uuid::Uuid;
 
 use crate::error::Result;
-use crate::meals::{CreateIngredientRequest, Ingredient, CreateMealRequest, Meal};
+use crate::meals::{CreateIngredientRequest, CreateMealRequest, Ingredient, Meal};
 use crate::trends::DailyMacroSummary;
 use async_trait::async_trait;
 

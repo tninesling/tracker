@@ -9,9 +9,9 @@ use crate::meals::Meal;
 use crate::storage::Database;
 use crate::trends::DailyMacroSummary;
 use async_trait::async_trait;
+use sqlx::postgres::PgRow;
 use sqlx::PgPool;
 use sqlx::Row;
-use sqlx::postgres::PgRow;
 use uuid::Uuid;
 
 pub struct Postgres<'a> {
@@ -24,11 +24,13 @@ impl<'a> Postgres<'a> {
     }
 
     async fn get_ingredient_amounts(&self, meals_id: Uuid) -> Result<HashMap<Uuid, f32>> {
-        let rows = sqlx::query(r#"
+        let rows = sqlx::query(
+            r#"
             SELECT ingredients_id, amount_grams
             FROM meals_ingredients
             WHERE meals_id = $1
-        "#)
+        "#,
+        )
         .bind(meals_id)
         .fetch_all(self.connection_pool)
         .await?;
@@ -84,24 +86,28 @@ impl Database for Postgres<'_> {
     }
 
     async fn create_meal(&self, req: &CreateMealRequest) -> Result<Uuid> {
-        let id: Uuid = sqlx::query_scalar(r#"
+        let id: Uuid = sqlx::query_scalar(
+            r#"
                 INSERT INTO meals
                     (date)
                 VALUES
                     ($1)
                 RETURNING id
-            "#)
-            .bind(req.date)
-            .fetch_one(self.connection_pool)
-            .await?;
-        
+            "#,
+        )
+        .bind(req.date)
+        .fetch_one(self.connection_pool)
+        .await?;
+
         for (ingredients_id, amount_grams) in req.ingredient_amounts.iter() {
-            sqlx::query(r#"
+            sqlx::query(
+                r#"
                 INSERT INTO meals_ingredients
                     (meals_id, ingredients_id, amount_grams)
                 VALUES
                     ($1, $2, $3)
-            "#)
+            "#,
+            )
             .bind(id)
             .bind(ingredients_id)
             .bind(amount_grams)
@@ -114,12 +120,14 @@ impl Database for Postgres<'_> {
 
     async fn get_meals(&self, offset: &i32, limit: &u32) -> Result<Vec<Meal>> {
         let mut meals = Vec::with_capacity(*limit as usize);
-        let meal_rows: Vec<PgRow> = sqlx::query(r#"
+        let meal_rows: Vec<PgRow> = sqlx::query(
+            r#"
             SELECT id, date
             FROM meals
             OFFSET $1
             LIMIT $2
-        "#)
+        "#,
+        )
         .bind(offset)
         .bind(limit)
         .fetch_all(self.connection_pool)
@@ -131,9 +139,7 @@ impl Database for Postgres<'_> {
             let meal = Meal::builder()
                 .id(id)
                 .date(date)
-                .ingredient_amounts(
-                    self.get_ingredient_amounts(id).await?
-                )
+                .ingredient_amounts(self.get_ingredient_amounts(id).await?)
                 .build();
             meals.push(meal);
         }
