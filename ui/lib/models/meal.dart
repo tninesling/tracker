@@ -2,19 +2,31 @@ import 'package:openapi/api.dart' as openapi;
 
 class Meal {
   final DateTime date;
-  final Map<Ingredient, double> ingredientAmounts;
+  final Map<String, double> ingredientAmounts;
 
   const Meal({required this.date, required this.ingredientAmounts});
+
+  factory Meal.fromOpenapi(openapi.Meal m) => Meal(
+        date: m.date,
+        ingredientAmounts: m.ingredientAmounts,
+      );
 }
 
 class CreateMealRequest {
   final DateTime date;
-  final Map<Ingredient, double> ingredientAmounts;
+  final Map<String, double> ingredientAmounts;
 
   const CreateMealRequest({
     required this.date,
     required this.ingredientAmounts,
   });
+
+  openapi.CreateMealRequest toOpenapi() {
+    return openapi.CreateMealRequest(
+      date: date,
+      ingredientAmounts: ingredientAmounts,
+    );
+  }
 }
 
 class Ingredient {

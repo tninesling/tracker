@@ -74,7 +74,8 @@ class MealInputState extends State<MealInput> {
             apiClient
                 .createMeal(CreateMealRequest(
                   date: date!,
-                  ingredientAmounts: ingredientAmounts,
+                  ingredientAmounts: ingredientAmounts.map(
+                      (ingredient, amount) => MapEntry(ingredient.id, amount)),
                 ))
                 .then(widget.onCreated);
           })

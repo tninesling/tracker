@@ -51,8 +51,9 @@ class OpenapiClientAdapter implements ApiClient {
 
   @override
   Future<Meal> createMeal(CreateMealRequest req) async {
-    // TODO: Actually make RPC
-    return Meal(date: DateTime.now(), ingredientAmounts: HashMap());
+    var meal = await openapiClient.createMeal(req.toOpenapi());
+
+    return Meal.fromOpenapi(meal);
   }
 
   @override
