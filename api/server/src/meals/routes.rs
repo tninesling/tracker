@@ -49,12 +49,12 @@ pub async fn get_ingredients(
         .get_ingredients(offset, &limit)
         .await
         .map_err::<HttpError, _>(|e| e.into())?;
-    let next_offset = *offset + ingredients.len() as i32;
-    let results_page = ResultsPage::new(ingredients, &EmptyScanParams {}, |_, _| OffsetPage {
-        offset: next_offset,
-    });
 
-    results_page.map(HttpResponseOk)
+    let next_offset = *offset + ingredients.len() as i32;
+    ResultsPage::new(ingredients, &EmptyScanParams {}, |_, _| OffsetPage {
+        offset: next_offset,
+    })
+    .map(HttpResponseOk)
 }
 
 #[endpoint {
