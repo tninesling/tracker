@@ -12,6 +12,10 @@ class IngredientList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    apiClient
+        .getFirstPageOfIngredients()
+        .then(context.read<DietState>().setIngredients);
+
     return Consumer<DietState>(builder: (context, state, child) {
       return ListView.builder(
         itemCount: state.ingredients().length,

@@ -1,12 +1,12 @@
 import 'dart:collection';
-
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
-import 'package:ui/atoms/double_input.dart';
+import 'package:provider/provider.dart';
 import 'package:ui/client.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/molecules/amount_form.dart';
 import 'package:ui/molecules/datetime_input.dart';
 import 'package:ui/molecules/ingredient_selector.dart';
+import 'package:ui/state.dart';
 
 enum MealInputStage {
   pickDateTime,
@@ -73,11 +73,14 @@ class MealInputState extends State<MealInput> {
           onPressed: () {
             apiClient
                 .createMeal(CreateMealRequest(
-                  date: date!,
-                  ingredientAmounts: ingredientAmounts.map(
-                      (ingredient, amount) => MapEntry(ingredient.id, amount)),
-                ))
-                .then(widget.onCreated);
+              date: date!,
+              ingredientAmounts: ingredientAmounts
+                  .map((ingredient, amount) => MapEntry(ingredient.id, amount)),
+            ))
+                .then((meal) {
+              context.read<DietState>().appendMeals([meal]);
+              widget.onCreated(meal);
+            });
           })
     ]);
   }

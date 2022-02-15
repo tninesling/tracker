@@ -1,71 +1,75 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
-import 'package:ui/atoms/ingredient.dart';
-import 'package:ui/client.dart';
 import 'package:ui/molecules/bottom_nav.dart';
-import 'package:ui/molecules/ingredient_list.dart';
+import 'package:ui/molecules/meal_list.dart';
 import 'package:ui/state.dart';
+import 'package:ui/utils/date_builder.dart';
 
 class DietScreen extends StatelessWidget {
   const DietScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Make sure this doesn't blow up on failure
-    apiClient
-        .getFirstPageOfIngredients()
-        .then(context.read<DietState>().setIngredients);
-
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.only(top: 64),
-        child: IngredientList(displayIngredient: (ingredient) {
-          return Ingredient(ingredient: ingredient);
-        }),
-      ),
+          padding: const EdgeInsets.only(top: 64),
+          child: Column(
+            children: [
+              const Indicators(),
+              Expanded(
+                child: MealList(
+                    after: DateBuilder().today().dayStart().build(),
+                    displayMeal: (meal) {
+                      return Text("${meal.date}");
+                    }),
+              ),
+            ],
+          )),
       bottomNavigationBar: const BottomNav(groupValue: "Diet"),
     );
   }
 }
 
 class Indicators extends StatelessWidget {
-  final DietState state;
-
-  Indicators({required this.state});
+  const Indicators({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final values = [
-      Target(
-          name: "Calories", value: 1540, targetValue: state.targetCalories()),
-      Target(
-          name: "Carbs (g)", value: 100, targetValue: state.targetCarbGrams()),
-      Target(name: "Fat (g)", value: 83, targetValue: state.targetFatGrams()),
-      Target(
-          name: "Protein (g)",
-          value: 72,
-          targetValue: state.targetProteinGrams()),
-    ];
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 80),
-      child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: values
-              .map((v) => Column(children: [
-                    NeumorphicIndicator(
-                        percent: v.getPercentCompleted(),
-                        height: 100,
-                        width: 20,
-                        style: IndicatorStyle(
-                          variant: _selectIndicatorColor(
-                              v.getPercentError()), // Colors.indigo.shade300,
-                          accent: _selectIndicatorColor(
-                              v.getPercentError()), // Colors.indigo.shade300,
-                        )),
-                    Text(v.getName().characters.first),
-                  ]))
-              .toList()),
-    );
+    return Consumer<DietState>(builder: (context, state, child) {
+      var values = [
+        Target(
+            name: "Calories", value: 1540, targetValue: state.targetCalories()),
+        Target(
+            name: "Carbs (g)",
+            value: 100,
+            targetValue: state.targetCarbGrams()),
+        Target(name: "Fat (g)", value: 83, targetValue: state.targetFatGrams()),
+        Target(
+            name: "Protein (g)",
+            value: 72,
+            targetValue: state.targetProteinGrams()),
+      ];
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 80),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: values
+                .map((v) => Column(children: [
+                      NeumorphicIndicator(
+                          percent: v.getPercentCompleted(),
+                          height: 100,
+                          width: 20,
+                          style: IndicatorStyle(
+                            variant: _selectIndicatorColor(
+                                v.getPercentError()), // Colors.indigo.shade300,
+                            accent: _selectIndicatorColor(
+                                v.getPercentError()), // Colors.indigo.shade300,
+                          )),
+                      Text(v.getName().characters.first),
+                    ]))
+                .toList()),
+      );
+    });
   }
 
   // TODO soften these colors with some color harmony

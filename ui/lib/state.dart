@@ -41,8 +41,13 @@ class DietState with ChangeNotifier {
     notifyListeners();
   }
 
-  void setMeals(List<Meal> meals) {
-    _meals = meals;
+  void setMeals(Iterable<Meal> meals) {
+    _meals = meals.toList();
+    notifyListeners();
+  }
+
+  void appendMeals(Iterable<Meal> meals) {
+    _meals.addAll(meals);
     notifyListeners();
   }
 }

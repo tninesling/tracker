@@ -4,6 +4,8 @@ use crate::meals::Meal;
 use crate::storage::Database;
 use crate::storage::Postgres;
 use crate::ApiContext;
+use chrono::DateTime;
+use chrono::Utc;
 use dropshot::endpoint;
 use dropshot::EmptyScanParams;
 use dropshot::HttpError;
@@ -25,6 +27,11 @@ use super::CreateMealRequest;
 #[derive(Deserialize, JsonSchema, Serialize)]
 pub struct OffsetPage {
     offset: i32,
+}
+
+#[derive(Deserialize, JsonSchema, Serialize)]
+pub struct AfterDate {
+    after: DateTime<Utc>,
 }
 
 #[endpoint {
@@ -80,22 +87,24 @@ pub async fn create_ingredient(
   }]
 pub async fn get_meals(
     rqctx: Arc<RequestContext<ApiContext>>,
-    query: Query<PaginationParams<EmptyScanParams, OffsetPage>>,
+    query: Query<PaginationParams<AfterDate, AfterDate>>,
 ) -> Result<HttpResponseOk<ResultsPage<Meal>>, HttpError> {
     let ctx = rqctx.context();
     let db = Postgres::new(&ctx.db_pool);
 
     let pag_params = query.into_inner();
-    let limit = rqctx.page_limit(&pag_params)?.get();
-    let offset = match &pag_params.page {
-        WhichPage::First(..) => &0,
-        WhichPage::Next(OffsetPage { offset }) => offset,
+    let after = match &pag_params.page {
+        WhichPage::First(AfterDate { after }) => after,
+        WhichPage::Next(AfterDate { after }) => after,
     };
+    let limit = rqctx.page_limit(&pag_params)?.get();
 
-    let meals = db.get_meals(offset, &limit).await?;
-    let next_offset = *offset + meals.len() as i32;
-    let results_page = ResultsPage::new(meals, &EmptyScanParams {}, |_, _| OffsetPage {
-        offset: next_offset,
+    let meals = db.get_meals(after, &limit).await?;
+    let last_date = meals
+        .iter()
+        .fold(*after, |acc, m| if m.date > acc { m.date } else { acc });
+    let results_page = ResultsPage::new(meals, &EmptyScanParams {}, |_, _| AfterDate {
+        after: last_date,
     })?;
 
     Ok(HttpResponseOk(results_page))

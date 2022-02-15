@@ -1,8 +1,7 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
+import 'package:ui/screens/trends.dart';
 import 'package:ui/state.dart';
-
-import 'screens/trends.dart';
 
 void main() => runApp(MultiProvider(
     providers: [ChangeNotifierProvider(create: (_) => DietState())],

@@ -1,20 +1,23 @@
-import 'dart:collection';
 import 'package:openapi/api.dart' as openapi;
 import 'package:ui/models/meal.dart';
 import 'package:ui/models/trend.dart';
 
 abstract class ApiClient {
+  Future<Ingredient> createIngredient(CreateIngredientRequest req);
   Future<Iterable<Ingredient>> getFirstPageOfIngredients();
   Future<Iterable<Ingredient>> getNextPageOfIngredients();
-  Future<Ingredient> createIngredient(CreateIngredientRequest req);
   Future<Meal> createMeal(CreateMealRequest req);
+  Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after);
+  Future<Iterable<Meal>> getNextPageOfMeals();
   Future<Iterable<Trend>> getMacroTrends(DateTime since);
 }
 
 class OpenapiClientAdapter implements ApiClient {
   final ingredientPageSize = 20;
+  final mealPageSize = 20;
   final openapi.DefaultApi openapiClient;
   late String? nextIngredientsPageToken;
+  late String? nextMealsPageToken;
 
   OpenapiClientAdapter({required this.openapiClient});
 
@@ -61,6 +64,29 @@ class OpenapiClientAdapter implements ApiClient {
     var trends = await openapiClient.getMacroTrends(since);
 
     return trends.map(Trend.fromOpenapi);
+  }
+
+  @override
+  Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after) async {
+    var page = await openapiClient.getMeals(after: after, limit: mealPageSize);
+
+    nextMealsPageToken = page.nextPage;
+
+    return page.items.map(Meal.fromOpenapi);
+  }
+
+  @override
+  Future<Iterable<Meal>> getNextPageOfMeals() async {
+    if (nextMealsPageToken == null) {
+      return List.empty();
+    }
+
+    var page = await openapiClient.getMeals(
+        limit: mealPageSize, pageToken: nextMealsPageToken);
+
+    nextMealsPageToken = page.nextPage;
+
+    return page.items.map(Meal.fromOpenapi);
   }
 }
 

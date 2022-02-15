@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::error::Error;
 use crate::error::Result;
 use crate::meals::CreateIngredientRequest;
@@ -9,9 +7,12 @@ use crate::meals::Meal;
 use crate::storage::Database;
 use crate::trends::DailyMacroSummary;
 use async_trait::async_trait;
+use chrono::DateTime;
+use chrono::Utc;
 use sqlx::postgres::PgRow;
 use sqlx::PgPool;
 use sqlx::Row;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 pub struct Postgres<'a> {
@@ -118,17 +119,17 @@ impl Database for Postgres<'_> {
         Ok(id)
     }
 
-    async fn get_meals(&self, offset: &i32, limit: &u32) -> Result<Vec<Meal>> {
+    async fn get_meals(&self, after: &DateTime<Utc>, limit: &u32) -> Result<Vec<Meal>> {
         let mut meals = Vec::with_capacity(*limit as usize);
         let meal_rows: Vec<PgRow> = sqlx::query(
             r#"
             SELECT id, date
             FROM meals
-            OFFSET $1
+            WHERE date > $1
             LIMIT $2
         "#,
         )
-        .bind(offset)
+        .bind(after)
         .bind(limit)
         .fetch_all(self.connection_pool)
         .await?;
