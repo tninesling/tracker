@@ -27,11 +27,11 @@ async fn create_meal<DB>(db: &DB, req: CreateMealRequest) -> Result<Meal>
 where
     DB: Database,
 {
-    db.create_meal(&req).await.map(|id| {
-        Meal::builder()
-            .id(id)
-            .date(req.date)
-            .ingredient_amounts(req.ingredient_amounts)
-            .build()
-    })
+    let meals_id = db.create_meal(&req).await?;
+
+    Ok(Meal::builder()
+        .id(meals_id)
+        .date(req.date)
+        .ingredients(db.get_meal_ingredients(meals_id).await?)
+        .build())
 }

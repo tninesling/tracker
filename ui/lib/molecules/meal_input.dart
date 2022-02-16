@@ -54,7 +54,8 @@ class MealInputState extends State<MealInput> {
         setState(() {
           amount = newAmountGrams;
         });
-        ingredientAmounts.update(ingredient!, (value) => amount!);
+        ingredientAmounts.update(ingredient!, (_) => amount!,
+            ifAbsent: () => amount!);
       });
     }
 

@@ -12,7 +12,6 @@ use chrono::Utc;
 use sqlx::postgres::PgRow;
 use sqlx::PgPool;
 use sqlx::Row;
-use std::collections::HashMap;
 use uuid::Uuid;
 
 pub struct Postgres<'a> {
@@ -22,26 +21,6 @@ pub struct Postgres<'a> {
 impl<'a> Postgres<'a> {
     pub fn new(connection_pool: &PgPool) -> Postgres {
         Postgres { connection_pool }
-    }
-
-    async fn get_ingredient_amounts(&self, meals_id: Uuid) -> Result<HashMap<Uuid, f32>> {
-        let rows = sqlx::query(
-            r#"
-            SELECT ingredients_id, amount_grams
-            FROM meals_ingredients
-            WHERE meals_id = $1
-        "#,
-        )
-        .bind(meals_id)
-        .fetch_all(self.connection_pool)
-        .await?;
-
-        let mut amounts_by_ingredient_id = HashMap::new();
-        for row in rows {
-            amounts_by_ingredient_id.insert(row.get(0), row.get(1));
-        }
-
-        Ok(amounts_by_ingredient_id)
     }
 }
 
@@ -86,6 +65,29 @@ impl Database for Postgres<'_> {
         .map_err(Error::DBError)
     }
 
+    async fn get_meal_ingredients(&self, meals_id: Uuid) -> Result<Vec<Ingredient>> {
+        sqlx::query_as::<_, Ingredient>(
+            r#"
+            SELECT
+                i.id,
+                i.name,
+                mi.amount_grams,
+                i.calories / i.amount_grams * mi.amount_grams as calories,
+                i.carb_grams / i.amount_grams * mi.amount_grams as carb_grams,
+                i.fat_grams / i.amount_grams * mi.amount_grams as fat_grams,
+                i.protein_grams / i.amount_grams * mi.amount_grams as protein_grams
+            FROM ingredients i
+            JOIN meals_ingredients mi
+            ON i.id = mi.ingredients_id
+            WHERE mi.meals_id = $1
+        "#,
+        )
+        .bind(meals_id)
+        .fetch_all(self.connection_pool)
+        .await
+        .map_err(Error::DBError)
+    }
+
     async fn create_meal(&self, req: &CreateMealRequest) -> Result<Uuid> {
         let id: Uuid = sqlx::query_scalar(
             r#"
@@ -112,7 +114,7 @@ impl Database for Postgres<'_> {
             .bind(id)
             .bind(ingredients_id)
             .bind(amount_grams)
-            .fetch_one(self.connection_pool)
+            .fetch_all(self.connection_pool)
             .await?;
         }
 
@@ -137,12 +139,15 @@ impl Database for Postgres<'_> {
         for row in meal_rows {
             let id = row.get(0);
             let date = row.get(1);
-            let meal = Meal::builder()
-                .id(id)
-                .date(date)
-                .ingredient_amounts(self.get_ingredient_amounts(id).await?)
-                .build();
-            meals.push(meal);
+            let ingredients = self.get_meal_ingredients(id).await?;
+
+            meals.push(
+                Meal::builder()
+                    .id(id)
+                    .date(date)
+                    .ingredients(ingredients)
+                    .build(),
+            );
         }
 
         Ok(meals)

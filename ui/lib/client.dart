@@ -68,11 +68,15 @@ class OpenapiClientAdapter implements ApiClient {
 
   @override
   Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after) async {
-    var page = await openapiClient.getMeals(after: after, limit: mealPageSize);
+    try {
+      var page =
+          await openapiClient.getMeals(after: after, limit: mealPageSize);
+      nextMealsPageToken = page.nextPage;
 
-    nextMealsPageToken = page.nextPage;
-
-    return page.items.map(Meal.fromOpenapi);
+      return page.items.map(Meal.fromOpenapi);
+    } catch (e) {
+      return [];
+    }
   }
 
   @override

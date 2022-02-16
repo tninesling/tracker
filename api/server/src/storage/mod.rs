@@ -14,6 +14,8 @@ pub trait Database {
 
     async fn get_ingredients(&self, offset: &i32, limit: &u32) -> Result<Vec<Ingredient>>;
 
+    async fn get_meal_ingredients(&self, meals_id: Uuid) -> Result<Vec<Ingredient>>;
+
     async fn create_meal(&self, req: &CreateMealRequest) -> Result<Uuid>;
 
     async fn get_meals(&self, after: &DateTime<Utc>, limit: &u32) -> Result<Vec<Meal>>;

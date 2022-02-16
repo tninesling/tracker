@@ -1,5 +1,6 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
+import 'package:ui/models/meal.dart';
 import 'package:ui/molecules/bottom_nav.dart';
 import 'package:ui/molecules/meal_list.dart';
 import 'package:ui/state.dart';
@@ -15,12 +16,12 @@ class DietScreen extends StatelessWidget {
           padding: const EdgeInsets.only(top: 64),
           child: Column(
             children: [
-              const Indicators(),
+              Indicators(),
               Expanded(
                 child: MealList(
                     after: DateBuilder().today().dayStart().build(),
                     displayMeal: (meal) {
-                      return Text("${meal.date}");
+                      return Text("${meal.date} ${meal.calories}");
                     }),
               ),
             ],
@@ -31,22 +32,31 @@ class DietScreen extends StatelessWidget {
 }
 
 class Indicators extends StatelessWidget {
-  const Indicators({Key? key}) : super(key: key);
+  Indicators({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Consumer<DietState>(builder: (context, state, child) {
+      Meal allMeals = state.meals().fold(Meal.empty(), (all, m) {
+        return all.add(m);
+      });
+
       var values = [
         Target(
-            name: "Calories", value: 1540, targetValue: state.targetCalories()),
+            name: "Calories",
+            value: allMeals.calories,
+            targetValue: state.targetCalories()),
         Target(
             name: "Carbs (g)",
-            value: 100,
+            value: allMeals.carbGrams,
             targetValue: state.targetCarbGrams()),
-        Target(name: "Fat (g)", value: 83, targetValue: state.targetFatGrams()),
+        Target(
+            name: "Fat (g)",
+            value: allMeals.fatGrams,
+            targetValue: state.targetFatGrams()),
         Target(
             name: "Protein (g)",
-            value: 72,
+            value: allMeals.proteinGrams,
             targetValue: state.targetProteinGrams()),
       ];
       return Padding(

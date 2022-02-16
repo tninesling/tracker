@@ -2,13 +2,37 @@ import 'package:openapi/api.dart' as openapi;
 
 class Meal {
   final DateTime date;
-  final Map<String, double> ingredientAmounts;
+  final List<Ingredient> ingredients;
+  late final double calories;
+  late final double carbGrams;
+  late final double fatGrams;
+  late final double proteinGrams;
 
-  const Meal({required this.date, required this.ingredientAmounts});
+  Meal({required this.date, required this.ingredients}) {
+    calories = ingredients.fold(0.0, (acc, i) {
+      return acc + i.calories;
+    });
+    carbGrams = ingredients.fold(0.0, (acc, i) {
+      return acc + i.carbGrams;
+    });
+    fatGrams = ingredients.fold(0.0, (acc, i) {
+      return acc + i.fatGrams;
+    });
+    proteinGrams = ingredients.fold(0.0, (acc, i) {
+      return acc + i.proteinGrams;
+    });
+  }
+
+  factory Meal.empty() => Meal(date: DateTime.now(), ingredients: []);
 
   factory Meal.fromOpenapi(openapi.Meal m) => Meal(
         date: m.date,
-        ingredientAmounts: m.ingredientAmounts,
+        ingredients: m.ingredients.map(Ingredient.fromOpenapi).toList(),
+      );
+
+  Meal add(Meal other) => Meal(
+        date: date,
+        ingredients: [...ingredients, ...other.ingredients],
       );
 }
 
