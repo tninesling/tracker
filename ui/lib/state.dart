@@ -48,6 +48,11 @@ class DietState with ChangeNotifier {
     notifyListeners();
   }
 
+  void removeMeal(Meal meal) {
+    _meals.remove(meal);
+    notifyListeners();
+  }
+
   Iterable<Meal> todaysMeals() => meals()
       .where((m) => m.date.isAfter(DateBuilder().today().dayStart().build()));
 }

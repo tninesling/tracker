@@ -20,5 +20,7 @@ pub trait Database {
 
     async fn get_meals(&self, after: &DateTime<Utc>, limit: &u32) -> Result<Vec<Meal>>;
 
+    async fn delete_meal(&self, meals_id: Uuid) -> Result<()>;
+
     async fn get_daily_summaries(&self, since: DateTime<Utc>) -> Result<Vec<DailyMacroSummary>>;
 }

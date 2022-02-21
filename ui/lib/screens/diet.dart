@@ -1,5 +1,6 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
+import 'package:ui/client.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/molecules/bottom_nav.dart';
 import 'package:ui/molecules/meal_list.dart';
@@ -18,13 +19,10 @@ class DietScreen extends StatelessWidget {
           children: [
             const Indicators(),
             Expanded(
-              child: MealList(
-                  after: DateBuilder().today().dayStart().build(),
-                  displayMeal: (meal) {
-                    return Text(
-                        "${meal.date.toLocal().toString().substring(11, 19)} ${meal.calories} ${meal.carbGrams} ${meal.fatGrams} ${meal.proteinGrams}");
-                  }),
-            ),
+                child: MealList(
+              after: DateBuilder().today().dayStart().build(),
+              displayMeal: (meal) => MealRow(meal: meal),
+            )),
           ],
         ),
       ),
@@ -112,5 +110,29 @@ class Target extends StatelessWidget {
     }
 
     return Colors.red.shade300;
+  }
+}
+
+class MealRow extends StatelessWidget {
+  final Meal meal;
+
+  const MealRow({Key? key, required this.meal}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(meal.id),
+        NeumorphicButton(
+          child: Text("Delete"),
+          onPressed: () {
+            apiClient.deleteMeal(meal.id).then((_) {
+              context.read<DietState>().removeMeal(meal);
+            });
+          },
+        )
+      ],
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    );
   }
 }

@@ -7,6 +7,7 @@ abstract class ApiClient {
   Future<Iterable<Ingredient>> getFirstPageOfIngredients();
   Future<Iterable<Ingredient>> getNextPageOfIngredients();
   Future<Meal> createMeal(CreateMealRequest req);
+  Future deleteMeal(String mealsId);
   Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after);
   Future<Iterable<Meal>> getNextPageOfMeals();
   Future<Iterable<Trend>> getMacroTrends(DateTime since);
@@ -57,6 +58,11 @@ class OpenapiClientAdapter implements ApiClient {
     var meal = await openapiClient.createMeal(req.toOpenapi());
 
     return Meal.fromOpenapi(meal);
+  }
+
+  @override
+  Future deleteMeal(String mealsId) async {
+    await openapiClient.deleteMeal(mealsId);
   }
 
   @override

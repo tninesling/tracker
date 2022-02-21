@@ -153,6 +153,19 @@ impl Database for Postgres<'_> {
         Ok(meals)
     }
 
+    async fn delete_meal(&self, meals_id: Uuid) -> Result<()> {
+        sqlx::query(
+            r#"
+            DELETE FROM meals WHERE id = $1
+        "#,
+        )
+        .bind(meals_id)
+        .fetch_all(self.connection_pool)
+        .await?;
+
+        Ok(())
+    }
+
     async fn get_daily_summaries(
         &self,
         since: chrono::DateTime<chrono::Utc>,

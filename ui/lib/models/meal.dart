@@ -58,6 +58,11 @@ class MealSet extends Iterable<Meal> {
     }
   }
 
+  void remove(Meal m) {
+    _ids.remove(m.id);
+    _meals.remove(m);
+  }
+
   @override
   Iterator<Meal> get iterator => _meals.iterator;
 }

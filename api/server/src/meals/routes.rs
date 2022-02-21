@@ -10,8 +10,10 @@ use dropshot::endpoint;
 use dropshot::EmptyScanParams;
 use dropshot::HttpError;
 use dropshot::HttpResponseCreated;
+use dropshot::HttpResponseDeleted;
 use dropshot::HttpResponseOk;
 use dropshot::PaginationParams;
+use dropshot::Path;
 use dropshot::Query;
 use dropshot::RequestContext;
 use dropshot::ResultsPage;
@@ -32,6 +34,11 @@ pub struct OffsetPage {
 #[derive(Deserialize, JsonSchema, Serialize)]
 pub struct AfterDate {
     after: DateTime<Utc>,
+}
+
+#[derive(Deserialize, JsonSchema, Serialize)]
+pub struct MealsIdParams {
+    meals_id: uuid::Uuid,
 }
 
 #[endpoint {
@@ -125,4 +132,21 @@ pub async fn create_meal(
     let meal = super::create_meal(&db, r).await?;
 
     Ok(HttpResponseCreated(meal))
+}
+
+#[endpoint {
+    method = DELETE,
+    path = "/meals/{meals_id}"
+}]
+pub async fn delete_meal(
+    rqctx: Arc<RequestContext<ApiContext>>,
+    path_params: Path<MealsIdParams>,
+) -> Result<HttpResponseDeleted, HttpError> {
+    let ctx = rqctx.context();
+    let db = Postgres::new(&ctx.db_pool);
+    let params = path_params.into_inner();
+
+    db.delete_meal(params.meals_id).await?;
+
+    Ok(HttpResponseDeleted())
 }
