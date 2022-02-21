@@ -1,5 +1,6 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
+import 'package:ui/atoms/time_display.dart';
 import 'package:ui/client.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/molecules/bottom_nav.dart';
@@ -79,7 +80,7 @@ class Target extends StatelessWidget {
 
   double getPercentCompleted() => value / targetValue;
 
-  double getPercentError() => ((1 - value) / targetValue).abs();
+  double getPercentError() => (1 - getPercentCompleted()).abs();
 
   @override
   Widget build(BuildContext context) {
@@ -101,15 +102,9 @@ class Target extends StatelessWidget {
 
   // TODO soften these colors with some color harmony
   Color _selectIndicatorColor(double percentError) {
-    if (percentError < 0.1) {
-      return Colors.green.shade300;
-    }
-
-    if (percentError < 0.25) {
-      return Colors.yellow.shade300;
-    }
-
-    return Colors.red.shade300;
+    return Color.lerp(
+            Colors.green.shade200, Colors.red.shade200, percentError) ??
+        Colors.black;
   }
 }
 
@@ -120,19 +115,22 @@ class MealRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(meal.id),
-        NeumorphicButton(
-          child: Text("Delete"),
-          onPressed: () {
-            apiClient.deleteMeal(meal.id).then((_) {
-              context.read<DietState>().removeMeal(meal);
-            });
-          },
-        )
-      ],
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          TimeDisplay(date: meal.date),
+          NeumorphicButton(
+            child: const Text("Delete"),
+            onPressed: () {
+              apiClient.deleteMeal(meal.id).then((_) {
+                context.read<DietState>().removeMeal(meal);
+              });
+            },
+          )
+        ],
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      ),
     );
   }
 }
