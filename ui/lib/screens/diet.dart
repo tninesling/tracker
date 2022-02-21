@@ -21,7 +21,8 @@ class DietScreen extends StatelessWidget {
                 child: MealList(
                     after: DateBuilder().today().dayStart().build(),
                     displayMeal: (meal) {
-                      return Text("${meal.date} ${meal.calories}");
+                      return Text(
+                          "${meal.date.toLocal().toString().substring(11, 19)} ${meal.calories} ${meal.carbGrams} ${meal.fatGrams} ${meal.proteinGrams}");
                     }),
               ),
             ],
@@ -37,7 +38,7 @@ class Indicators extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<DietState>(builder: (context, state, child) {
-      Meal allMeals = state.meals().fold(Meal.empty(), (all, m) {
+      Meal allMeals = state.todaysMeals().fold(Meal.empty(), (all, m) {
         return all.add(m);
       });
 

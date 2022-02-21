@@ -79,7 +79,7 @@ class MealInputState extends State<MealInput> {
                   .map((ingredient, amount) => MapEntry(ingredient.id, amount)),
             ))
                 .then((meal) {
-              context.read<DietState>().appendMeals([meal]);
+              context.read<DietState>().addMeals([meal]);
               widget.onCreated(meal);
             });
           })

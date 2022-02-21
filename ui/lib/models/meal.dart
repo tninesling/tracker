@@ -1,6 +1,7 @@
 import 'package:openapi/api.dart' as openapi;
 
 class Meal {
+  final String id;
   final DateTime date;
   final List<Ingredient> ingredients;
   late final double calories;
@@ -8,7 +9,7 @@ class Meal {
   late final double fatGrams;
   late final double proteinGrams;
 
-  Meal({required this.date, required this.ingredients}) {
+  Meal({required this.id, required this.date, required this.ingredients}) {
     calories = ingredients.fold(0.0, (acc, i) {
       return acc + i.calories;
     });
@@ -23,17 +24,42 @@ class Meal {
     });
   }
 
-  factory Meal.empty() => Meal(date: DateTime.now(), ingredients: []);
+  factory Meal.empty() => Meal(id: '', date: DateTime.now(), ingredients: []);
 
   factory Meal.fromOpenapi(openapi.Meal m) => Meal(
+        id: m.id,
         date: m.date,
         ingredients: m.ingredients.map(Ingredient.fromOpenapi).toList(),
       );
 
   Meal add(Meal other) => Meal(
+        id: '',
         date: date,
         ingredients: [...ingredients, ...other.ingredients],
       );
+}
+
+class MealSet extends Iterable<Meal> {
+  final Set<String> _ids = {};
+  final List<Meal> _meals = [];
+
+  MealSet({Iterable<Meal>? meals}) {
+    if (meals != null) {
+      addAll(meals);
+    }
+  }
+
+  void addAll(Iterable<Meal> ms) {
+    for (Meal m in ms) {
+      if (!_ids.contains(m.id)) {
+        _ids.add(m.id);
+        _meals.add(m);
+      }
+    }
+  }
+
+  @override
+  Iterator<Meal> get iterator => _meals.iterator;
 }
 
 class CreateMealRequest {

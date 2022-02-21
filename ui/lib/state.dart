@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:ui/models/meal.dart';
+import 'package:ui/utils/date_builder.dart';
 
 class DietState with ChangeNotifier {
+  final MealSet _meals = MealSet();
+
   double _weightLbs = 160;
   double _targetCalories = 2000;
   List<Ingredient> _ingredients = [];
-  List<Meal> _meals = [];
 
   double targetProteinGrams() => _weightLbs;
   double targetCalories() => _targetCalories;
@@ -18,7 +20,7 @@ class DietState with ChangeNotifier {
       (targetCalories() - _targetProteinCalories()) / 2 / 4;
 
   List<Ingredient> ingredients() => _ingredients;
-  List<Meal> meals() => _meals;
+  MealSet meals() => _meals;
 
   // Abstract weight like Duration is done
   void setWeightLbs(double w) {
@@ -41,13 +43,11 @@ class DietState with ChangeNotifier {
     notifyListeners();
   }
 
-  void setMeals(Iterable<Meal> meals) {
-    _meals = meals.toList();
-    notifyListeners();
-  }
-
-  void appendMeals(Iterable<Meal> meals) {
+  void addMeals(Iterable<Meal> meals) {
     _meals.addAll(meals);
     notifyListeners();
   }
+
+  Iterable<Meal> todaysMeals() => meals()
+      .where((m) => m.date.isAfter(DateBuilder().today().dayStart().build()));
 }

@@ -15,17 +15,20 @@ class MealList extends StatelessWidget {
   Widget build(BuildContext context) {
     apiClient
         .getFirstPageOfMeals(after)
-        .then(context.read<DietState>().setMeals);
+        .then(context.read<DietState>().addMeals);
 
     return Consumer<DietState>(builder: (context, state, child) {
+      var tm = state.todaysMeals().toList();
+      tm.sort((m1, m2) => m1.date.compareTo(m2.date));
+
       return ListView.builder(
-          itemCount: state.meals().length,
+          itemCount: tm.length,
           itemBuilder: (context, index) {
-            if (index >= state.meals().length - 1) {
-              apiClient.getNextPageOfMeals().then(state.appendMeals);
+            if (index >= tm.length - 1) {
+              apiClient.getNextPageOfMeals().then(state.addMeals);
             }
 
-            return displayMeal(state.meals()[index]);
+            return displayMeal(tm[index]);
           });
     });
   }
