@@ -1,3 +1,4 @@
+mod basket_optimizer;
 mod models;
 pub(crate) mod routes;
 
