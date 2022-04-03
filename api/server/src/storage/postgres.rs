@@ -30,9 +30,9 @@ impl Database for Postgres<'_> {
         let id = sqlx::query_scalar(
             r#"
             INSERT INTO ingredients
-                (name, amount_grams, calories, carb_grams, fat_grams, protein_grams)
+                (name, amount_grams, calories, carb_grams, fat_grams, protein_grams, sugar_grams, sodium_milligrams)
             VALUES
-                ($1, $2, $3, $4, $5, $6)
+                ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING id
         "#,
         )
@@ -42,6 +42,8 @@ impl Database for Postgres<'_> {
         .bind(req.carb_grams)
         .bind(req.fat_grams)
         .bind(req.protein_grams)
+        .bind(req.sugar_grams)
+        .bind(req.sodium_milligrams)
         .fetch_one(self.connection_pool)
         .await
         .map_err(Error::DBError)?;
@@ -52,7 +54,7 @@ impl Database for Postgres<'_> {
     async fn get_ingredients(&self, offset: &i32, limit: &u32) -> Result<Vec<Ingredient>> {
         sqlx::query_as::<_, Ingredient>(
             r#"
-            SELECT id, name, amount_grams, calories, carb_grams, fat_grams, protein_grams
+            SELECT id, name, amount_grams, calories, carb_grams, fat_grams, protein_grams, sugar_grams, sodium_milligrams
             FROM ingredients
             OFFSET $1
             LIMIT $2
@@ -75,7 +77,9 @@ impl Database for Postgres<'_> {
                 i.calories / i.amount_grams * mi.amount_grams as calories,
                 i.carb_grams / i.amount_grams * mi.amount_grams as carb_grams,
                 i.fat_grams / i.amount_grams * mi.amount_grams as fat_grams,
-                i.protein_grams / i.amount_grams * mi.amount_grams as protein_grams
+                i.protein_grams / i.amount_grams * mi.amount_grams as protein_grams,
+                i.sugar_grams / i.amount_grams * mi.amount_grams as sugar_grams,
+                i.sodium_milligrams / i.amount_grams * mi.amount_grams as sodium_milligrams
             FROM ingredients i
             JOIN meals_ingredients mi
             ON i.id = mi.ingredients_id
@@ -177,7 +181,9 @@ impl Database for Postgres<'_> {
             DATE_TRUNC('day', m.date) AS day,
             i.carb_grams AS carb_grams,
             i.fat_grams AS fat_grams,
-            i.protein_grams AS protein_grams
+            i.protein_grams AS protein_grams,
+            i.sugar_grams AS sugar_grams,
+            i.sodium_milligrams AS sodium_milligrams
           FROM meals m
             JOIN meals_ingredients mi
             ON m.id = mi.meals_id
@@ -189,7 +195,9 @@ impl Database for Postgres<'_> {
           day,
           SUM(carb_grams) AS carb_grams,
           SUM(fat_grams) AS fat_grams,
-          SUM(protein_grams) AS protein_grams
+          SUM(protein_grams) AS protein_grams,
+          SUM(sugar_grams) AS sugar_grams,
+          SUM(sodium_milligrams) AS sodium_milligrams
         FROM ingredients_eaten
         GROUP BY day
         ORDER BY day ASC

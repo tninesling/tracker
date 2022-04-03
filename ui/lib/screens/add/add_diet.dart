@@ -8,9 +8,12 @@ class AddDietScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(child: MealInput(onCreated: (_) {
-        Navigator.of(context).pop();
-      })),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32.0),
+        child: Center(child: MealInput(onCreated: (_) {
+          Navigator.of(context).pop();
+        })),
+      ),
       bottomNavigationBar: const BottomNav(groupValue: "Add"),
     );
   }

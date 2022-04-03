@@ -15,18 +15,8 @@ class DietScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 8.0),
-        child: Column(
-          children: [
-            const Indicators(),
-            Expanded(
-                child: MealList(
-              after: DateBuilder().today().dayStart().build(),
-              displayMeal: (meal) => MealRow(meal: meal),
-            )),
-          ],
-        ),
-      ),
+          padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 8.0),
+          child: Indicators()),
       bottomNavigationBar: const BottomNav(groupValue: "Diet"),
     );
   }
@@ -60,9 +50,8 @@ class Indicators extends StatelessWidget {
             targetValue: state.targetProteinGrams()),
       ];
 
-      return Row(
+      return ListView(
         children: values,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       );
     });
   }
@@ -84,18 +73,16 @@ class Target extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: [
-        Text(getName()),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: CircularProgressIndicator(
-            value: getPercentCompleted(),
-            color: _selectIndicatorColor(getPercentError()),
-            backgroundColor: Colors.grey,
-          ),
-        ),
-        Text("${value.round()} / ${targetValue.round()}"),
+        SizedBox(child: Text(getName()), width: 100),
+        Text("${value.round()}"),
+        Expanded(
+            child: NeumorphicProgress(
+          percent: getPercentCompleted(),
+          style: ProgressStyle(accent: _selectIndicatorColor(getPercentError())),
+        )),
+        Text("${targetValue.round()}")
       ],
     );
   }

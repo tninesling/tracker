@@ -102,4 +102,4 @@ class OpenapiClientAdapter implements ApiClient {
 
 ApiClient apiClient = OpenapiClientAdapter(
     openapiClient:
-        openapi.DefaultApi(openapi.ApiClient(basePath: 'http://192.168.49.2')));
+        openapi.DefaultApi(openapi.ApiClient(basePath: 'http://localhost:8080')));

@@ -8,7 +8,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "gen:dart": "openapi-generator-cli generate -i http://192.168.49.2/spec -g dart -o ./dart"
+    "gen:dart": "openapi-generator-cli generate -i http://localhost/spec -g dart -o ./dart"
   },
   "author": "",
   "license": "ISC"
