@@ -18,8 +18,8 @@ class MealList extends StatelessWidget {
         .then(context.read<DietState>().addMeals);
 
     return Consumer<DietState>(builder: (context, state, child) {
-      var tm = state.todaysMeals().toList();
-      tm.sort((m1, m2) => m1.date.compareTo(m2.date));
+      var tm = state.meals().where((m) => m.date.isAfter(after)).toList();
+      tm.sort((m1, m2) => m2.date.compareTo(m1.date));
 
       return ListView.builder(
           itemCount: tm.length,

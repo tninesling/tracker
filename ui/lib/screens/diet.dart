@@ -4,6 +4,7 @@ import 'package:ui/atoms/time_display.dart';
 import 'package:ui/client.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/molecules/bottom_nav.dart';
+import 'package:ui/molecules/meal_list.dart';
 import 'package:ui/state.dart';
 
 class DietScreen extends StatelessWidget {
@@ -11,11 +12,40 @@ class DietScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Padding(
-          padding: EdgeInsets.symmetric(vertical: 32.0, horizontal: 8.0),
-          child: Indicators()),
-      bottomNavigationBar: BottomNav(groupValue: "Diet"),
+          padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Today's Summary",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const Indicators(),
+              const Divider(),
+              const Text("Meals",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Expanded(
+                  child: MealList(
+                      after: DateTime(2021), displayMeal: buildMealRow))
+            ],
+          )),
+      bottomNavigationBar: const BottomNav(groupValue: "Diet"),
+    );
+  }
+
+  Widget buildMealRow(Meal meal) {
+    return Row(
+      children: [
+        Text("${meal.date}"),
+        Consumer<DietState>(builder: (context, state, child) {
+          return IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              apiClient.deleteMeal(meal.id).then((_) => state.removeMeal(meal));
+            },
+          );
+        })
+      ],
     );
   }
 }
@@ -58,7 +88,7 @@ class Indicators extends StatelessWidget {
         )
       ];
 
-      return ListView(
+      return Column(
         children: values,
       );
     });
