@@ -11,6 +11,8 @@ pub struct DailyMacroSummary {
     pub carb_grams: f64,
     pub fat_grams: f64,
     pub protein_grams: f64,
+    pub sugar_grams: f64,
+    pub sodium_milligrams: f64,
 }
 
 #[derive(Default, Serialize, JsonSchema)]

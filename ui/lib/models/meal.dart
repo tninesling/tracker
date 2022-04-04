@@ -8,6 +8,8 @@ class Meal {
   late final double carbGrams;
   late final double fatGrams;
   late final double proteinGrams;
+  late final double sugarGrams;
+  late final double sodiumMilligrams;
 
   Meal({required this.id, required this.date, required this.ingredients}) {
     calories = ingredients.fold(0.0, (acc, i) {
@@ -21,6 +23,12 @@ class Meal {
     });
     proteinGrams = ingredients.fold(0.0, (acc, i) {
       return acc + i.proteinGrams;
+    });
+    sugarGrams = ingredients.fold(0.0, (acc, i) {
+      return acc + i.sugarGrams;
+    });
+    sodiumMilligrams = ingredients.fold(0.0, (acc, i) {
+      return acc + i.sodiumMilligrams;
     });
   }
 
@@ -92,6 +100,8 @@ class Ingredient {
   final double carbGrams;
   final double fatGrams;
   final double proteinGrams;
+  final double sugarGrams;
+  final double sodiumMilligrams;
 
   const Ingredient(
       {required this.id,
@@ -100,7 +110,9 @@ class Ingredient {
       required this.calories,
       required this.carbGrams,
       required this.fatGrams,
-      required this.proteinGrams});
+      required this.proteinGrams,
+      required this.sugarGrams,
+      required this.sodiumMilligrams});
 
   factory Ingredient.fromOpenapi(openapi.Ingredient i) => Ingredient(
         id: i.id,
@@ -110,6 +122,8 @@ class Ingredient {
         carbGrams: i.carbGrams,
         fatGrams: i.fatGrams,
         proteinGrams: i.proteinGrams,
+        sugarGrams: i.sugarGrams,
+        sodiumMilligrams: i.sodiumMilligrams,
       );
 }
 
@@ -120,6 +134,8 @@ class CreateIngredientRequest {
   final double carbGrams;
   final double fatGrams;
   final double proteinGrams;
+  final double sugarGrams;
+  final double sodiumMilligrams;
 
   const CreateIngredientRequest(
       {required this.name,
@@ -127,7 +143,9 @@ class CreateIngredientRequest {
       required this.calories,
       required this.carbGrams,
       required this.fatGrams,
-      required this.proteinGrams});
+      required this.proteinGrams,
+      required this.sugarGrams,
+      required this.sodiumMilligrams});
 
   openapi.CreateIngredientRequest toOpenapi() =>
       openapi.CreateIngredientRequest(
@@ -137,5 +155,7 @@ class CreateIngredientRequest {
         carbGrams: carbGrams,
         fatGrams: fatGrams,
         proteinGrams: proteinGrams,
+        sugarGrams: sugarGrams,
+        sodiumMilligrams: sodiumMilligrams,
       );
 }

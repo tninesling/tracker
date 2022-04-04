@@ -4,30 +4,18 @@ import 'package:ui/atoms/time_display.dart';
 import 'package:ui/client.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/molecules/bottom_nav.dart';
-import 'package:ui/molecules/meal_list.dart';
 import 'package:ui/state.dart';
-import 'package:ui/utils/date_builder.dart';
 
 class DietScreen extends StatelessWidget {
   const DietScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 8.0),
-        child: Column(
-          children: [
-            const Indicators(),
-            Expanded(
-                child: MealList(
-              after: DateBuilder().today().dayStart().build(),
-              displayMeal: (meal) => MealRow(meal: meal),
-            )),
-          ],
-        ),
-      ),
-      bottomNavigationBar: const BottomNav(groupValue: "Diet"),
+          padding: EdgeInsets.symmetric(vertical: 32.0, horizontal: 8.0),
+          child: Indicators()),
+      bottomNavigationBar: BottomNav(groupValue: "Diet"),
     );
   }
 }
@@ -58,11 +46,20 @@ class Indicators extends StatelessWidget {
             name: "Protein (g)",
             value: allMeals.proteinGrams,
             targetValue: state.targetProteinGrams()),
+        Target(
+          name: "Sugar (g)",
+          value: allMeals.sugarGrams,
+          targetValue: state.targetSugarGrams(),
+        ),
+        Target(
+          name: "Sodium (mg)",
+          value: allMeals.sodiumMilligrams,
+          targetValue: state.targetSodiumMilligrams(),
+        )
       ];
 
-      return Row(
+      return ListView(
         children: values,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       );
     });
   }
@@ -84,18 +81,22 @@ class Target extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: [
-        Text(getName()),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: CircularProgressIndicator(
-            value: getPercentCompleted(),
-            color: _selectIndicatorColor(getPercentError()),
-            backgroundColor: Colors.grey,
-          ),
-        ),
-        Text("${value.round()} / ${targetValue.round()}"),
+        SizedBox(child: Text(getName()), width: 90),
+        SizedBox(child: Text("${value.round()}"), width: 40),
+        Expanded(
+            child: NeumorphicProgress(
+          percent: getPercentCompleted(),
+          style: ProgressStyle(
+              accent: _selectIndicatorColor(getPercentError()), depth: -1),
+        )),
+        SizedBox(
+            child: Text(
+              "${targetValue.round()}",
+              textAlign: TextAlign.right,
+            ),
+            width: 40)
       ],
     );
   }

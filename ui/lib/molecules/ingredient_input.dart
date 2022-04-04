@@ -20,16 +20,20 @@ class IngredientInputState extends State<IngredientInput> {
   late double carbGrams;
   late double fatGrams;
   late double proteinGrams;
+  late double sugarGrams;
+  late double sodiumMilligrams;
 
   @override
   Widget build(BuildContext context) {
     return Form(
         key: _formKey,
-        child: Column(children: [
+        child: ListView(children: [
           TextFormField(
             decoration: const InputDecoration(labelText: 'Name'),
             onChanged: (value) {
-              name = value;
+              setState(() {
+                name = value;
+              });
             },
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -40,28 +44,53 @@ class IngredientInputState extends State<IngredientInput> {
           DoubleInput(
               label: "Amount (g)",
               onChanged: (newAmountGrams) {
-                amountGrams = newAmountGrams;
+                setState(() {
+                  amountGrams = newAmountGrams;
+                });
               }),
           DoubleInput(
               label: "Calories",
               onChanged: (newCalories) {
-                calories = newCalories;
+                setState(() {
+                  calories = newCalories;
+                });
               }),
           DoubleInput(
               label: "Carbs (g)",
               onChanged: (newCarbGrams) {
-                carbGrams = newCarbGrams;
+                setState(() {
+                  carbGrams = newCarbGrams;
+                });
               }),
           DoubleInput(
               label: "Fat (g)",
               onChanged: (newFatGrams) {
-                fatGrams = newFatGrams;
+                setState(() {
+                  fatGrams = newFatGrams;
+                });
               }),
           DoubleInput(
               label: "Protein (g)",
               onChanged: (newProteinGrams) {
-                proteinGrams = newProteinGrams;
+                setState(() {
+                  proteinGrams = newProteinGrams;
+                });
               }),
+          DoubleInput(
+              label: "Sugar (g)",
+              onChanged: (newSugarGrams) {
+                setState(() {
+                  sugarGrams = newSugarGrams;
+                });
+              }),
+          DoubleInput(
+            label: "Sodium (mg)",
+            onChanged: (newSodiumMilligrams) {
+              setState(() {
+                sodiumMilligrams = newSodiumMilligrams;
+              });
+            },
+          ),
           NeumorphicButton(
             child: const Text("Submit"),
             onPressed: () {
@@ -74,6 +103,8 @@ class IngredientInputState extends State<IngredientInput> {
                       carbGrams: carbGrams,
                       fatGrams: fatGrams,
                       proteinGrams: proteinGrams,
+                      sugarGrams: sugarGrams,
+                      sodiumMilligrams: sodiumMilligrams,
                     ))
                     .then(widget.onCreated);
               }

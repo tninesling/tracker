@@ -19,6 +19,9 @@ class DietState with ChangeNotifier {
   double targetFatGrams() =>
       (targetCalories() - _targetProteinCalories()) / 2 / 4;
 
+  double targetSugarGrams() => 10;
+  double targetSodiumMilligrams() => 500;
+
   List<Ingredient> ingredients() => _ingredients;
   MealSet meals() => _meals;
 

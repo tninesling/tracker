@@ -10,7 +10,7 @@ async fn create_ingredient<DB>(db: &DB, req: &CreateIngredientRequest) -> Result
 where
     DB: Database,
 {
-    db.create_ingredient(req).await.map(|id| {
+    db.create_ingredient(req.validate()?).await.map(|id| {
         Ingredient::builder()
             .id(id)
             .name(req.name.to_string())
@@ -19,6 +19,8 @@ where
             .carb_grams(req.carb_grams)
             .fat_grams(req.fat_grams)
             .protein_grams(req.protein_grams)
+            .sugar_grams(req.sugar_grams)
+            .sodium_milligrams(req.sodium_milligrams)
             .build()
     })
 }
