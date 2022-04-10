@@ -69,20 +69,22 @@ class MealInputState extends State<MealInput> {
           });
         },
       ),
-      NeumorphicButton(
-          child: const Text("Submit"),
-          onPressed: () {
-            apiClient
-                .createMeal(CreateMealRequest(
-              date: date!,
-              ingredientAmounts: ingredientAmounts
-                  .map((ingredient, amount) => MapEntry(ingredient.id, amount)),
-            ))
-                .then((meal) {
-              context.read<DietState>().addMeals([meal]);
-              widget.onCreated(meal);
-            });
-          })
+      Consumer<Storage>(
+        builder: (context, storage, child) => NeumorphicButton(
+            child: const Text("Submit"),
+            onPressed: () {
+              storage
+                  .createMeal(CreateMealRequest(
+                date: date!,
+                ingredientAmounts: ingredientAmounts.map(
+                    (ingredient, amount) => MapEntry(ingredient.id, amount)),
+              ))
+                  .then((meal) {
+                context.read<DietState>().addMeals([meal]);
+                widget.onCreated(meal);
+              });
+            }),
+      )
     ]);
   }
 }

@@ -1,8 +1,9 @@
 import 'package:openapi/api.dart' as openapi;
+import 'package:sqflite/sqflite.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/models/trend.dart';
 
-abstract class ApiClient {
+abstract class Storage {
   Future<Ingredient> createIngredient(CreateIngredientRequest req);
   Future<Iterable<Ingredient>> getFirstPageOfIngredients();
   Future<Iterable<Ingredient>> getNextPageOfIngredients();
@@ -13,14 +14,50 @@ abstract class ApiClient {
   Future<Iterable<Trend>> getMacroTrends(DateTime since);
 }
 
-class OpenapiClientAdapter implements ApiClient {
+class LocalStorage implements Storage {
+  Database db;
+
+  LocalStorage({required this.db});
+
+  @override
+  Future<Ingredient> createIngredient(CreateIngredientRequest req) async {
+    var ingredient = Ingredient.fromCreateRequest(req);
+    await db.insert('ingredients', ingredient.toMap());
+    return ingredient;
+  }
+
+  @override
+  Future<Iterable<Ingredient>> getFirstPageOfIngredients() async {
+    var records = await db.query('ingredients');
+    return records.map(Ingredient.fromMap);
+  }
+
+  @override
+  Future<Iterable<Ingredient>> getNextPageOfIngredients() async {
+    // TODO: Use offset/limit to paginate
+    return [];
+  }
+
+  @override
+  Future<Meal> createMeal(CreateMealRequest req);
+  @override
+  Future deleteMeal(String mealsId);
+  @override
+  Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after);
+  @override
+  Future<Iterable<Meal>> getNextPageOfMeals();
+  @override
+  Future<Iterable<Trend>> getMacroTrends(DateTime since);
+}
+
+class RemoteStorage implements Storage {
   final ingredientPageSize = 20;
   final mealPageSize = 20;
   final openapi.DefaultApi openapiClient;
   late String? nextIngredientsPageToken;
   late String? nextMealsPageToken;
 
-  OpenapiClientAdapter({required this.openapiClient});
+  RemoteStorage({required this.openapiClient});
 
   @override
   Future<Iterable<Ingredient>> getFirstPageOfIngredients() async {
@@ -99,7 +136,3 @@ class OpenapiClientAdapter implements ApiClient {
     return page.items.map(Meal.fromOpenapi);
   }
 }
-
-ApiClient apiClient = OpenapiClientAdapter(
-    openapiClient:
-        openapi.DefaultApi(openapi.ApiClient(basePath: 'http://192.168.49.2')));

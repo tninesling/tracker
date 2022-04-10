@@ -1,4 +1,5 @@
 import 'package:openapi/api.dart' as openapi;
+import 'package:uuid/uuid.dart';
 
 class Meal {
   final String id;
@@ -114,6 +115,30 @@ class Ingredient {
       required this.sugarGrams,
       required this.sodiumMilligrams});
 
+  factory Ingredient.fromCreateRequest(CreateIngredientRequest i) => Ingredient(
+        id: const Uuid().v4(),
+        name: i.name,
+        amountGrams: i.amountGrams,
+        calories: i.calories,
+        carbGrams: i.carbGrams,
+        fatGrams: i.fatGrams,
+        proteinGrams: i.proteinGrams,
+        sugarGrams: i.sugarGrams,
+        sodiumMilligrams: i.sodiumMilligrams,
+      );
+
+  factory Ingredient.fromMap(Map<String, dynamic> map) => Ingredient(
+        id: map['id'],
+        name: map['name'],
+        amountGrams: map['amountGrams'],
+        calories: map['calories'],
+        carbGrams: map['carbGrams'],
+        fatGrams: map['fatGrams'],
+        proteinGrams: map['proteinGrams'],
+        sugarGrams: map['sugarGrams'],
+        sodiumMilligrams: map['sodiumMilligrams'],
+      );
+
   factory Ingredient.fromOpenapi(openapi.Ingredient i) => Ingredient(
         id: i.id,
         name: i.name,
@@ -125,6 +150,20 @@ class Ingredient {
         sugarGrams: i.sugarGrams,
         sodiumMilligrams: i.sodiumMilligrams,
       );
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'amountGrams': amountGrams,
+      'calories': calories,
+      'carbGrams': carbGrams,
+      'fatGrams': fatGrams,
+      'proteinGrams': proteinGrams,
+      'sugarGrams': sugarGrams,
+      'sodiumMilligrams': sodiumMilligrams,
+    };
+  }
 }
 
 class CreateIngredientRequest {
