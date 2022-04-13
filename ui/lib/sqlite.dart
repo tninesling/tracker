@@ -35,4 +35,45 @@ class Sqlite {
     JOIN meals_ingredients mi
     ON m.id = mi.meals_id
   """;
+
+  static String selectMealAndIngredientsForMeal() => """
+    SELECT
+      m.id AS meals_id,
+      m.date AS date,
+      i.id AS id,
+      i.name AS name,
+      mi.amount_grams AS amount_grams,
+      i.calories / i.amount_grams * mi.amount_grams AS calories,
+      i.carb_grams / i.amount_grams * mi.amount_grams AS carb_grams,
+      i.fat_grams / i.amount_grams * mi.amount_grams AS fat_grams,
+      i.protein_grams / i.amount_grams * mi.amount_grams AS protein_grams,
+      i.sugar_grams / i.amount_grams * mi.amount_grams AS sugar_grams,
+      i.sodium_milligrams / i.amount_grams * mi.amount_grams AS sodium_milligrams
+    FROM meals m
+    JOIN meals_ingredients mi
+    ON m.id = mi.meals_id
+    JOIN ingredients i
+    ON mi.ingredients_id = i.id
+    WHERE m.id = ?
+  """;
+
+  static String selectAllMealsAndIngredients() => """
+    SELECT
+      m.id AS meals_id,
+      m.date AS date,
+      i.id AS id,
+      i.name AS name,
+      mi.amount_grams AS amount_grams,
+      i.calories / i.amount_grams * mi.amount_grams AS calories,
+      i.carb_grams / i.amount_grams * mi.amount_grams AS carb_grams,
+      i.fat_grams / i.amount_grams * mi.amount_grams AS fat_grams,
+      i.protein_grams / i.amount_grams * mi.amount_grams AS protein_grams,
+      i.sugar_grams / i.amount_grams * mi.amount_grams AS sugar_grams,
+      i.sodium_milligrams / i.amount_grams * mi.amount_grams AS sodium_milligrams
+    FROM meals m
+    JOIN meals_ingredients mi
+    ON m.id = mi.meals_id
+    JOIN ingredients i
+    ON mi.ingredients_id = i.id
+  """;
 }

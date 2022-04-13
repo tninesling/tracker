@@ -130,13 +130,13 @@ class Ingredient {
   factory Ingredient.fromMap(Map<String, dynamic> map) => Ingredient(
         id: map['id'],
         name: map['name'],
-        amountGrams: map['amountGrams'],
+        amountGrams: map['amount_grams'],
         calories: map['calories'],
-        carbGrams: map['carbGrams'],
-        fatGrams: map['fatGrams'],
-        proteinGrams: map['proteinGrams'],
-        sugarGrams: map['sugarGrams'],
-        sodiumMilligrams: map['sodiumMilligrams'],
+        carbGrams: map['carb_grams'],
+        fatGrams: map['fat_grams'],
+        proteinGrams: map['protein_grams'],
+        sugarGrams: map['sugar_grams'],
+        sodiumMilligrams: map['sodium_milligrams'],
       );
 
   factory Ingredient.fromOpenapi(openapi.Ingredient i) => Ingredient(
@@ -155,13 +155,13 @@ class Ingredient {
     return {
       'id': id,
       'name': name,
-      'amountGrams': amountGrams,
+      'amount_grams': amountGrams,
       'calories': calories,
-      'carbGrams': carbGrams,
-      'fatGrams': fatGrams,
-      'proteinGrams': proteinGrams,
-      'sugarGrams': sugarGrams,
-      'sodiumMilligrams': sodiumMilligrams,
+      'carb_grams': carbGrams,
+      'fat_grams': fatGrams,
+      'protein_grams': proteinGrams,
+      'sugar_grams': sugarGrams,
+      'sodium_milligrams': sodiumMilligrams,
     };
   }
 }

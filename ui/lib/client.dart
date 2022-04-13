@@ -1,7 +1,10 @@
+import 'dart:collection';
+
 import 'package:openapi/api.dart' as openapi;
 import 'package:sqflite/sqflite.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/models/trend.dart';
+import 'package:ui/sqlite.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class Storage {
@@ -52,22 +55,61 @@ class LocalStorage implements Storage {
       });
     }
 
-    return await getMealById(id);
+    return (await getMealById(id))!;
   }
 
-  Future<Meal> getMealById(String id) async {}
+  Future<Meal?> getMealById(String id) async {
+    var records =
+        await db.rawQuery(Sqlite.selectMealAndIngredientsForMeal(), [id]);
+
+    Meal? meal;
+    for (var r in records) {
+      meal ??= Meal(
+          id: r["meals_id"] as String,
+          date: DateTime.parse(r["date"] as String),
+          ingredients: []);
+      meal.ingredients.add(Ingredient.fromMap(r));
+    }
+
+    return meal;
+  }
 
   @override
   Future deleteMeal(String mealsId) async {
     await db.delete('meals', where: 'id = ?', whereArgs: [mealsId]);
   }
-  
+
   @override
-  Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after);
+  Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after) async {
+    var records = await db.rawQuery(Sqlite.selectAllMealsAndIngredients());
+
+    var hm = HashMap<String, Meal>();
+    for (var r in records) {
+      var mealsId = r["meals_id"] as String;
+      if (!hm.containsKey(mealsId)) {
+        hm[mealsId] = Meal(
+            id: mealsId,
+            date: DateTime.parse(r["date"] as String),
+            ingredients: []);
+      }
+
+      hm[mealsId]!.ingredients.add(Ingredient.fromMap(r));
+    }
+
+    return hm.values;
+  }
+
   @override
-  Future<Iterable<Meal>> getNextPageOfMeals();
+  Future<Iterable<Meal>> getNextPageOfMeals() async {
+    // All meals are returned in the first page
+    return [];
+  }
+
   @override
-  Future<Iterable<Trend>> getMacroTrends(DateTime since);
+  Future<Iterable<Trend>> getMacroTrends(DateTime since) async {
+    // TODO: implement
+    return [];
+  }
 }
 
 class RemoteStorage implements Storage {
