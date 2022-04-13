@@ -4,22 +4,20 @@ import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:ui/client.dart';
 import 'package:ui/screens/trends.dart';
+import 'package:ui/sqlite.dart';
 import 'package:ui/state.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final database = await openDatabase(
-      // TODO: More upscripts
-      join(await getDatabasesPath(), 'heath.db'), onCreate: (db, version) {
-    return db.execute("""CREATE TABLE IF NOT EXISTS ingredients(
-                id UUID NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
-                name VARCHAR(200) NOT NULL,
-                calories REAL NOT NULL,
-                carb_grams REAL NOT NULL,
-                fat_grams REAL NOT NULL,
-                protein_grams REAL NOT NULL
-              );""");
-  }, version: 1);
+    join(await getDatabasesPath(), 'heath.db'),
+    onCreate: (db, version) async {
+      await db.execute(Sqlite.createIngredientsTable());
+      await db.execute(Sqlite.createMealsTable());
+      await db.execute(Sqlite.createMealsIngredientsTable());
+    },
+    version: 1
+  );
 
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (_) => DietState()),

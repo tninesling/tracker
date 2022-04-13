@@ -2,6 +2,7 @@ import 'package:openapi/api.dart' as openapi;
 import 'package:sqflite/sqflite.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/models/trend.dart';
+import 'package:uuid/uuid.dart';
 
 abstract class Storage {
   Future<Ingredient> createIngredient(CreateIngredientRequest req);
@@ -39,9 +40,28 @@ class LocalStorage implements Storage {
   }
 
   @override
-  Future<Meal> createMeal(CreateMealRequest req);
+  Future<Meal> createMeal(CreateMealRequest req) async {
+    var id = const Uuid().v4();
+    await db.insert(
+        'meals', {'id': id, 'date': req.date.toUtc().toIso8601String()});
+    for (var entry in req.ingredientAmounts.entries) {
+      await db.insert('meals_ingredients', {
+        'meals_id': id,
+        'ingredients_id': entry.key,
+        'amount_grams': entry.value
+      });
+    }
+
+    return await getMealById(id);
+  }
+
+  Future<Meal> getMealById(String id) async {}
+
   @override
-  Future deleteMeal(String mealsId);
+  Future deleteMeal(String mealsId) async {
+    await db.delete('meals', where: 'id = ?', whereArgs: [mealsId]);
+  }
+  
   @override
   Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after);
   @override
