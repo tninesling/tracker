@@ -1,4 +1,5 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:provider/provider.dart';
 import 'package:ui/atoms/double_input.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/client.dart';
@@ -95,7 +96,8 @@ class IngredientInputState extends State<IngredientInput> {
             child: const Text("Submit"),
             onPressed: () {
               if (_formKey.currentState!.validate()) {
-                apiClient
+                context
+                    .read<Storage>()
                     .createIngredient(CreateIngredientRequest(
                       name: name,
                       amountGrams: amountGrams,

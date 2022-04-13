@@ -12,7 +12,8 @@ class IngredientList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    apiClient
+    context
+        .read<Storage>()
         .getFirstPageOfIngredients()
         .then(context.read<DietState>().setIngredients);
 
@@ -21,7 +22,10 @@ class IngredientList extends StatelessWidget {
         itemCount: state.ingredients().length,
         itemBuilder: (context, index) {
           if (index >= state.ingredients().length - 1) {
-            apiClient.getNextPageOfIngredients().then(state.appendIngredients);
+            context
+                .read<Storage>()
+                .getNextPageOfIngredients()
+                .then(state.appendIngredients);
           }
 
           return displayIngredient(state.ingredients()[index]);

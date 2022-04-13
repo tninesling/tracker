@@ -1,11 +1,34 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:path/path.dart';
 import 'package:provider/provider.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:ui/client.dart';
 import 'package:ui/screens/trends.dart';
+import 'package:ui/sqlite.dart';
 import 'package:ui/state.dart';
 
-void main() => runApp(MultiProvider(
-    providers: [ChangeNotifierProvider(create: (_) => DietState())],
-    child: const MyApp()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final database = await openDatabase(
+    join(await getDatabasesPath(), 'heath.db'),
+    onCreate: (db, version) async {
+      await db.execute(Sqlite.createIngredientsTable());
+      await db.execute(Sqlite.createMealsTable());
+      await db.execute(Sqlite.createMealsIngredientsTable());
+    },
+    version: 1
+  );
+
+  runApp(MultiProvider(providers: [
+    ChangeNotifierProvider(create: (_) => DietState()),
+    Provider<Storage>(create: (_) => LocalStorage(db: database)),
+    /* 
+      RemoteStorage(
+        openapiClient:
+            openapi.DefaultApi(openapi.ApiClient(basePath: 'http://192.168.49.2')));
+      */
+  ], child: const MyApp()));
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);

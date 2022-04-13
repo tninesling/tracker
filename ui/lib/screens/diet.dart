@@ -154,7 +154,7 @@ class MealRow extends StatelessWidget {
           NeumorphicButton(
             child: const Text("Delete"),
             onPressed: () {
-              apiClient.deleteMeal(meal.id).then((_) {
+              context.read<Storage>().deleteMeal(meal.id).then((_) {
                 context.read<DietState>().removeMeal(meal);
               });
             },

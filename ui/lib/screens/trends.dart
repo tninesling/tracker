@@ -1,4 +1,5 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:provider/provider.dart';
 import 'package:ui/atoms/scatter_plot.dart';
 import 'package:ui/client.dart';
 import 'package:ui/models/trend.dart';
@@ -35,8 +36,9 @@ class TrendChartState extends State<TrendChart> {
   void initState() {
     super.initState();
     selectedIndex = 0;
-    trends =
-        apiClient.getMacroTrends(DateTime.now().subtract(Duration(days: 60)));
+    trends = context
+        .read<Storage>()
+        .getMacroTrends(DateTime.now().subtract(Duration(days: 60)));
   }
 
   @override
@@ -98,7 +100,8 @@ class TrendChartState extends State<TrendChart> {
   Future<Iterable<Trend>> _getTrendsForTab(int index) {
     switch (index) {
       default:
-        return apiClient
+        return context
+            .read<Storage>()
             .getMacroTrends(DateTime.now().subtract(Duration(days: 60)));
     }
   }
