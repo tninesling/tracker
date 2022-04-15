@@ -1,4 +1,5 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:ui/atoms/clock.dart';
 import 'package:ui/atoms/time_display.dart';
 import 'package:ui/utils/date_builder.dart';
 
@@ -9,6 +10,8 @@ class TimeInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return const NeumorphicClock();
+    /*
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -35,5 +38,6 @@ class TimeInput extends StatelessWidget {
         );
       },
     );
+    */
   }
 }
