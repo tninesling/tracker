@@ -37,13 +37,17 @@ class DietScreen extends StatelessWidget {
     return Row(
       children: [
         Text("${meal.date}"),
-        Consumer<DietState>(builder: (context, state, child) {
-          return IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () {
-              apiClient.deleteMeal(meal.id).then((_) => state.removeMeal(meal));
-            },
-          );
+        Consumer<Storage>(builder: (context1, storage, child1) {
+          return Consumer<DietState>(builder: (context2, memory, child2) {
+            return IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                storage
+                    .deleteMeal(meal.id)
+                    .then((_) => memory.removeMeal(meal));
+              },
+            );
+          });
         })
       ],
     );
