@@ -7,6 +7,6 @@ class TimeDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(date.toLocal().toIso8601String().substring(11, 19));
+    return Text(date.toLocal().toIso8601String().substring(11, 16));
   }
 }

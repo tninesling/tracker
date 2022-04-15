@@ -9,30 +9,31 @@ class TimeInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+      ),
       itemCount: 48,
       itemBuilder: (context, index) {
         var durationSinceMidnight = Duration(minutes: index * 30);
 
-        return NeumorphicButton(
-          child: TimeDisplay(
-              date: DateBuilder()
-                  .today()
-                  .dayStart()
-                  .build()
-                  .add(durationSinceMidnight)),
-          onPressed: () {
-            onChanged(durationSinceMidnight);
-          },
+        return Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: NeumorphicButton(
+            child: Center(
+              child: TimeDisplay(
+                  date: DateBuilder()
+                      .today()
+                      .dayStart()
+                      .build()
+                      .add(durationSinceMidnight)),
+            ),
+            onPressed: () {
+              onChanged(durationSinceMidnight);
+            },
+          ),
         );
       },
     );
-  }
-
-  String halfHourTimeString(int multiple) {
-    var hour = multiple / 2;
-    var minutes = multiple % 2 * 30;
-
-    return "$hour:$minutes";
   }
 }
