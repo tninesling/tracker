@@ -38,7 +38,7 @@ class DietScreen extends StatelessWidget {
       children: [
         Expanded(child: Text(meal.date.toIso8601String().substring(5, 10))),
         Consumer<Storage>(builder: (context1, storage, child1) {
-          return Consumer<DietState>(builder: (context2, memory, child2) {
+          return Consumer<AppState>(builder: (context2, memory, child2) {
             return IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
@@ -59,7 +59,7 @@ class Indicators extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<DietState>(builder: (context, state, child) {
+    return Consumer<AppState>(builder: (context, state, child) {
       Meal allMeals = state.todaysMeals().fold(Meal.empty(), (all, m) {
         return all.add(m);
       });
@@ -159,7 +159,7 @@ class MealRow extends StatelessWidget {
             child: const Text("Delete"),
             onPressed: () {
               context.read<Storage>().deleteMeal(meal.id).then((_) {
-                context.read<DietState>().removeMeal(meal);
+                context.read<AppState>().removeMeal(meal);
               });
             },
           )

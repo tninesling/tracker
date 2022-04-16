@@ -20,7 +20,7 @@ void main() async {
   );
 
   runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(create: (_) => DietState()),
+    ChangeNotifierProvider(create: (_) => AppState()),
     Provider<Storage>(create: (_) => LocalStorage(db: database)),
     /* 
       RemoteStorage(

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/utils/date_builder.dart';
 
-class DietState with ChangeNotifier {
+class AppState with ChangeNotifier {
   final MealSet _meals = MealSet();
 
   double _weightLbs = 160;

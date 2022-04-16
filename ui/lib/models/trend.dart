@@ -39,6 +39,22 @@ class Line {
         intercept: l.intercept,
       );
 
+  factory Line.linearRegressionOf(Iterable<Point> points) {
+    var sumX = 0.0, sumY = 0.0, sumXX = 0.0, sumXY = 0.0, n = 0;
+    for (var point in points) {
+      sumX += point.x;
+      sumY += point.y;
+      sumXX += point.x * point.x;
+      sumXY += point.x * point.y;
+      n++;
+    }
+
+    var slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    var intercept = sumY / n - slope / n * sumX;
+
+    return Line(slope: slope, intercept: intercept);
+  }
+
   Point pointAt(double x) => Point(
         x: x,
         y: x * slope + intercept,

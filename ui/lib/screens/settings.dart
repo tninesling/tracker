@@ -1,7 +1,7 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
-import '../state.dart';
-import '../molecules/bottom_nav.dart';
+import 'package:ui/state.dart';
+import 'package:ui/molecules/bottom_nav.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -38,7 +38,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildTargetCaloriesSetter() {
-    return Consumer<DietState>(builder: (context, state, child) {
+    return Consumer<AppState>(builder: (context, state, child) {
       // TODO style with neumorphism
       return TextFormField(
         validator: (value) {

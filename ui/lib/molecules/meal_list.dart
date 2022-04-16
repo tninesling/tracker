@@ -16,9 +16,9 @@ class MealList extends StatelessWidget {
     context
         .read<Storage>()
         .getFirstPageOfMeals(after)
-        .then(context.read<DietState>().addMeals);
+        .then(context.read<AppState>().addMeals);
 
-    return Consumer<DietState>(builder: (context, state, child) {
+    return Consumer<AppState>(builder: (context, state, child) {
       var tm = state.meals().where((m) => m.date.isAfter(after)).toList();
       tm.sort((m1, m2) => m2.date.compareTo(m1.date));
 

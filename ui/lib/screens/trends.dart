@@ -38,7 +38,7 @@ class TrendChartState extends State<TrendChart> {
     selectedIndex = 0;
     trends = context
         .read<Storage>()
-        .getMacroTrends(DateTime.now().subtract(Duration(days: 60)));
+        .getMacroTrends(DateTime.now().subtract(const Duration(days: 30)));
   }
 
   @override
