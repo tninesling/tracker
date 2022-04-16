@@ -29,7 +29,9 @@ class MealInputState extends State<MealInput> {
   double? amount;
   Map<Ingredient, double> ingredientAmounts;
 
-  MealInputState() : ingredientAmounts = HashMap();
+  MealInputState()
+      : ingredientAmounts = HashMap(
+            equals: (i1, i2) => i1.id == i2.id, hashCode: (i) => i.id.hashCode);
 
   @override
   Widget build(BuildContext context) {
@@ -59,32 +61,63 @@ class MealInputState extends State<MealInput> {
       });
     }
 
-    return Column(children: [
-      NeumorphicButton(
-        child: const Text("Add Ingredient"),
-        onPressed: () {
-          setState(() {
-            ingredient = null;
-            amount = null;
-          });
-        },
+    return ListView(children: [
+      ...ingredientAmounts.entries.map((entry) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(entry.key.name),
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                setState(() {
+                  ingredientAmounts.remove(entry.key);
+                });
+              },
+            ),
+          ],
+        );
+      }),
+      Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: NeumorphicButton(
+                child: const Text("Add Ingredient"),
+                onPressed: () {
+                  setState(() {
+                    ingredient = null;
+                    amount = null;
+                  });
+                },
+              ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Consumer<Storage>(
+                builder: (context, storage, child) => NeumorphicButton(
+                    child: const Text("Submit"),
+                    onPressed: () {
+                      storage
+                          .createMeal(CreateMealRequest(
+                        date: date!,
+                        ingredientAmounts: ingredientAmounts.map(
+                            (ingredient, amount) =>
+                                MapEntry(ingredient.id, amount)),
+                      ))
+                          .then((meal) {
+                        context.read<DietState>().addMeals([meal]);
+                        widget.onCreated(meal);
+                      });
+                    }),
+              ),
+            ),
+          )
+        ],
       ),
-      Consumer<Storage>(
-        builder: (context, storage, child) => NeumorphicButton(
-            child: const Text("Submit"),
-            onPressed: () {
-              storage
-                  .createMeal(CreateMealRequest(
-                date: date!,
-                ingredientAmounts: ingredientAmounts.map(
-                    (ingredient, amount) => MapEntry(ingredient.id, amount)),
-              ))
-                  .then((meal) {
-                context.read<DietState>().addMeals([meal]);
-                widget.onCreated(meal);
-              });
-            }),
-      )
     ]);
   }
 }
