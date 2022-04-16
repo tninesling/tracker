@@ -1,7 +1,7 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
 import 'package:ui/atoms/scatter_plot.dart';
-import 'package:ui/storage.dart';
+import 'package:ui/state.dart';
 import 'package:ui/models/trend.dart';
 import 'package:ui/molecules/bottom_nav.dart';
 
@@ -36,16 +36,15 @@ class TrendChartState extends State<TrendChart> {
   void initState() {
     super.initState();
     selectedIndex = 0;
-    trends = context
-        .read<Storage>()
-        .getMacroTrends(DateTime.now().subtract(const Duration(days: 30)));
+    trends = Future.value(context
+        .read<AppState>()
+        .getMacroTrends(DateTime.now().subtract(const Duration(days: 30))));
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(children: [
       _buildChart(),
-      _buildToggle(),
     ]);
   }
 
@@ -65,44 +64,5 @@ class TrendChartState extends State<TrendChart> {
 
               return ScatterPlot(trends: trends);
             }));
-  }
-
-  Widget _buildToggle() {
-    return NeumorphicToggle(
-      selectedIndex: selectedIndex,
-      children: widget.toggles.map(_buildToggleElement).toList(),
-      thumb: Neumorphic(
-        style: NeumorphicStyle(
-          boxShape: NeumorphicBoxShape.roundRect(
-              const BorderRadius.all(Radius.circular(12))),
-        ),
-      ),
-      onChanged: (v) {
-        setState(() {
-          selectedIndex = v;
-          trends = _getTrendsForTab(v);
-        });
-      },
-    );
-  }
-
-  ToggleElement _buildToggleElement(String text) {
-    return ToggleElement(
-      foreground: Center(
-          child:
-              Text(text, style: const TextStyle(fontWeight: FontWeight.bold))),
-      background: Center(
-          child: Text(text,
-              style: const TextStyle(fontWeight: FontWeight.normal))),
-    );
-  }
-
-  Future<Iterable<Trend>> _getTrendsForTab(int index) {
-    switch (index) {
-      default:
-        return context
-            .read<Storage>()
-            .getMacroTrends(DateTime.now().subtract(Duration(days: 60)));
-    }
   }
 }
