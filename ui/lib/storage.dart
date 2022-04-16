@@ -88,6 +88,7 @@ class LocalStorage implements Storage {
   var mealPageSize = 20;
   var nextMealOffset = 0;
 
+  // TODO: use date filter in SQL query
   @override
   Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after) async {
     var records = await db

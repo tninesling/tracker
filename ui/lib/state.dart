@@ -58,4 +58,9 @@ class AppState with ChangeNotifier {
 
   Iterable<Meal> todaysMeals() => meals()
       .where((m) => m.date.isAfter(DateBuilder().today().dayStart().build()));
+  
+  Iterable<Meal> mealsOnDay(DateTime date) => meals().where((m) =>
+      m.date.year == date.year &&
+      m.date.month == date.month &&
+      m.date.day == date.day);
 }

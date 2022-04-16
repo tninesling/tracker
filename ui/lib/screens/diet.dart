@@ -1,34 +1,78 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
+import 'package:ui/atoms/day_display.dart';
 import 'package:ui/atoms/time_display.dart';
 import 'package:ui/storage.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/molecules/bottom_nav.dart';
-import 'package:ui/molecules/meal_list.dart';
 import 'package:ui/state.dart';
 
-class DietScreen extends StatelessWidget {
+class DietScreen extends StatefulWidget {
   const DietScreen({Key? key}) : super(key: key);
+
+  @override
+  State<DietScreen> createState() => _DietScreenState();
+}
+
+class _DietScreenState extends State<DietScreen> {
+  late DateTime date;
+
+  @override
+  void initState() {
+    super.initState();
+    date = DateTime.now();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
           padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Today's Summary",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              const Indicators(),
-              const Divider(),
-              const Text("Meals",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              Expanded(
-                  child: MealList(
-                      after: DateTime(2021), displayMeal: buildMealRow))
-            ],
-          )),
+          child: Consumer<AppState>(builder: (context, state, child) {
+            var meals = state.mealsOnDay(date);
+            return ListView(
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      child: NeumorphicButton(
+                          child: const Center(child: Icon(Icons.arrow_left)),
+                          onPressed: () {
+                            setState(() {
+                              date = date.subtract(const Duration(days: 1));
+                            });
+                          }),
+                      height: 48,
+                      width: 48,
+                    ),
+                    Expanded(child: Center(child: DayDisplay(date: date))),
+                    SizedBox(
+                      child: NeumorphicButton(
+                          child: const Center(child: Icon(Icons.arrow_right)),
+                          onPressed: () {
+                            setState(() {
+                              date = date.add(const Duration(days: 1));
+                            });
+                          }),
+                      height: 48,
+                      width: 48,
+                    ),
+                  ],
+                ),
+                const Text("Summary",
+                    style:
+                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                Consumer<AppState>(
+                    builder: (context, state, child) =>
+                        Indicators(meals: meals)),
+                const Divider(),
+                const Text("Meals",
+                    style:
+                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                ...meals.map(buildMealRow),
+              ],
+            );
+          })),
       bottomNavigationBar: const BottomNav(groupValue: "Diet"),
     );
   }
@@ -36,7 +80,7 @@ class DietScreen extends StatelessWidget {
   Widget buildMealRow(Meal meal) {
     return Row(
       children: [
-        Expanded(child: Text(meal.date.toIso8601String().substring(5, 10))),
+        Expanded(child: TimeDisplay(date: meal.date)),
         Consumer<Storage>(builder: (context1, storage, child1) {
           return Consumer<AppState>(builder: (context2, memory, child2) {
             return IconButton(
@@ -55,12 +99,14 @@ class DietScreen extends StatelessWidget {
 }
 
 class Indicators extends StatelessWidget {
-  const Indicators({Key? key}) : super(key: key);
+  Iterable<Meal> meals;
+
+  Indicators({Key? key, required this.meals}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(builder: (context, state, child) {
-      Meal allMeals = state.todaysMeals().fold(Meal.empty(), (all, m) {
+      Meal allMeals = meals.fold(Meal.empty(), (all, m) {
         return all.add(m);
       });
       var values = [
