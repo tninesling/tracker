@@ -57,7 +57,12 @@ class Sqlite {
     WHERE m.id = ?
   """;
 
-  static String selectAllMealsAndIngredients() => """
+  static String selectMealsPageAndIngredients() => """
+    WITH meals_page AS (
+      SELECT * FROM meals
+      LIMIT ?
+      OFFSET ?
+    )
     SELECT
       m.id AS meals_id,
       m.date AS date,
@@ -70,7 +75,7 @@ class Sqlite {
       i.protein_grams / i.amount_grams * mi.amount_grams AS protein_grams,
       i.sugar_grams / i.amount_grams * mi.amount_grams AS sugar_grams,
       i.sodium_milligrams / i.amount_grams * mi.amount_grams AS sodium_milligrams
-    FROM meals m
+    FROM meals_page m
     JOIN meals_ingredients mi
     ON m.id = mi.meals_id
     JOIN ingredients i

@@ -30,16 +30,22 @@ class LocalStorage implements Storage {
     return ingredient;
   }
 
+  var ingredientPageSize = 20;
+  var nextIngredientOffset = 0;
+
   @override
   Future<Iterable<Ingredient>> getFirstPageOfIngredients() async {
-    var records = await db.query('ingredients');
+    var records = await db.query('ingredients', limit: ingredientPageSize);
+    nextIngredientOffset = ingredientPageSize;
     return records.map(Ingredient.fromMap);
   }
 
   @override
   Future<Iterable<Ingredient>> getNextPageOfIngredients() async {
-    // TODO: Use offset/limit to paginate
-    return [];
+    var records = await db.query('ingredients',
+        offset: nextIngredientOffset, limit: ingredientPageSize);
+    nextIngredientOffset += ingredientPageSize;
+    return records.map(Ingredient.fromMap);
   }
 
   @override
@@ -79,9 +85,13 @@ class LocalStorage implements Storage {
     await db.delete('meals', where: 'id = ?', whereArgs: [mealsId]);
   }
 
+  var mealPageSize = 20;
+  var nextMealOffset = 0;
+
   @override
   Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after) async {
-    var records = await db.rawQuery(Sqlite.selectAllMealsAndIngredients());
+    var records = await db
+        .rawQuery(Sqlite.selectMealsPageAndIngredients(), [mealPageSize, 0]);
 
     var hm = HashMap<String, Meal>();
     for (var r in records) {
@@ -96,13 +106,30 @@ class LocalStorage implements Storage {
       hm[mealsId]!.ingredients.add(Ingredient.fromMap(r));
     }
 
+    nextMealOffset = hm.length;
     return hm.values;
   }
 
   @override
   Future<Iterable<Meal>> getNextPageOfMeals() async {
-    // All meals are returned in the first page
-    return [];
+    var records = await db.rawQuery(
+        Sqlite.selectMealsPageAndIngredients(), [mealPageSize, nextMealOffset]);
+
+    var hm = HashMap<String, Meal>();
+    for (var r in records) {
+      var mealsId = r["meals_id"] as String;
+      if (!hm.containsKey(mealsId)) {
+        hm[mealsId] = Meal(
+            id: mealsId,
+            date: DateTime.parse(r["date"] as String),
+            ingredients: []);
+      }
+
+      hm[mealsId]!.ingredients.add(Ingredient.fromMap(r));
+    }
+
+    nextMealOffset += hm.length;
+    return hm.values;
   }
 
   @override
