@@ -64,9 +64,16 @@ class MealInputState extends State<MealInput> {
     return ListView(children: [
       ...ingredientAmounts.entries.map((entry) {
         return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(entry.key.name),
+            Expanded(child: Text("${entry.key.name} ${entry.value}g")),
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                setState(() {
+                  amount = null;
+                });
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {

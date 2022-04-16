@@ -36,7 +36,7 @@ class DietScreen extends StatelessWidget {
   Widget buildMealRow(Meal meal) {
     return Row(
       children: [
-        Text("${meal.date}"),
+        Expanded(child: Text(meal.date.toIso8601String().substring(5, 10))),
         Consumer<Storage>(builder: (context1, storage, child1) {
           return Consumer<DietState>(builder: (context2, memory, child2) {
             return IconButton(
