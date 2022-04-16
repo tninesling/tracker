@@ -1,7 +1,7 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:ui/atoms/themed_icon.dart';
-import 'package:ui/screens/add/add_diet.dart';
-import 'package:ui/screens/add/feature_request.dart';
+import 'package:ui/screens/add_meal.dart';
+import 'package:ui/screens/feature_request.dart';
 import 'package:ui/screens/diet.dart';
 import 'package:ui/screens/settings.dart';
 import 'package:ui/screens/trends.dart';
@@ -47,7 +47,7 @@ class BottomNav extends StatelessWidget {
                   Navigator.of(context).push(MaterialPageRoute(builder: (ctx) {
                     switch (groupValue) {
                       case "Diet":
-                        return const AddDietScreen();
+                        return const AddMealScreen();
                       default:
                         return const FeatureRequest();
                     }
