@@ -1,13 +1,9 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:ui/atoms/themed_icon.dart';
 import 'package:ui/screens/add/add_diet.dart';
-import 'package:ui/screens/add/add_exercise.dart';
 import 'package:ui/screens/add/feature_request.dart';
-import 'package:ui/screens/add/add_sleep.dart';
 import 'package:ui/screens/diet.dart';
-import 'package:ui/screens/exercise.dart';
 import 'package:ui/screens/settings.dart';
-import 'package:ui/screens/sleep.dart';
 import 'package:ui/screens/trends.dart';
 
 class BottomNav extends StatelessWidget {
@@ -35,30 +31,12 @@ class BottomNav extends StatelessWidget {
                 },
               ),
               NeumorphicRadio(
-                child: const ThemedIcon(Icons.fitness_center_sharp),
-                value: "Exercise",
-                groupValue: groupValue,
-                onChanged: (str) {
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (ctx) => const ExerciseScreen()));
-                },
-              ),
-              NeumorphicRadio(
                 child: const ThemedIcon(Icons.ramen_dining_sharp),
                 value: "Diet",
                 groupValue: groupValue,
                 onChanged: (str) {
                   Navigator.of(context).pushReplacement(
                       MaterialPageRoute(builder: (ctx) => DietScreen()));
-                },
-              ),
-              NeumorphicRadio(
-                child: const ThemedIcon(Icons.bedtime_sharp),
-                value: "Sleep",
-                groupValue: groupValue,
-                onChanged: (str) {
-                  Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (ctx) => const SleepScreen()));
                 },
               ),
               NeumorphicRadio(
@@ -70,10 +48,6 @@ class BottomNav extends StatelessWidget {
                     switch (groupValue) {
                       case "Diet":
                         return const AddDietScreen();
-                      case "Exercise":
-                        return const AddExerciseScreen();
-                      case "Sleep":
-                        return const AddSleepScreen();
                       default:
                         return const FeatureRequest();
                     }

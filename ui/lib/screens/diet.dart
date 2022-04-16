@@ -1,7 +1,7 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
 import 'package:ui/atoms/time_display.dart';
-import 'package:ui/client.dart';
+import 'package:ui/storage.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/molecules/bottom_nav.dart';
 import 'package:ui/molecules/meal_list.dart';

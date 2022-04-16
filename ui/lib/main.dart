@@ -2,7 +2,7 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:ui/client.dart';
+import 'package:ui/storage.dart';
 import 'package:ui/screens/trends.dart';
 import 'package:ui/sqlite.dart';
 import 'package:ui/state.dart';

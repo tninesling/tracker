@@ -2,7 +2,7 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
 import 'package:ui/atoms/double_input.dart';
 import 'package:ui/models/meal.dart';
-import 'package:ui/client.dart';
+import 'package:ui/storage.dart';
 
 class IngredientInput extends StatefulWidget {
   final Function(Ingredient) onCreated;

@@ -1,7 +1,7 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
 import 'package:ui/atoms/scatter_plot.dart';
-import 'package:ui/client.dart';
+import 'package:ui/storage.dart';
 import 'package:ui/models/trend.dart';
 import 'package:ui/molecules/bottom_nav.dart';
 

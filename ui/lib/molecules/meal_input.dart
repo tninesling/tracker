@@ -1,7 +1,7 @@
 import 'dart:collection';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
-import 'package:ui/client.dart';
+import 'package:ui/storage.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/molecules/amount_form.dart';
 import 'package:ui/molecules/datetime_input.dart';

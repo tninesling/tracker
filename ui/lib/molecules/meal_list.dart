@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:ui/client.dart';
+import 'package:ui/storage.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/state.dart';
 
