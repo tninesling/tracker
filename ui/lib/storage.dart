@@ -145,9 +145,36 @@ class LocalStorage implements Storage {
   }
 
   @override
-  Future<Iterable<Trend>> getMacroTrends(DateTime since) async {
-    // TODO: implement
-    return [];
+  Future<Iterable<Trend>> getMacroTrends(DateTime after) async {
+    var macroSummaries = await db.rawQuery(
+        Sqlite.selectMacroSummariesAfterDate(), [after.toIso8601String()]);
+    List<Point> carbPoints = [];
+    List<Point> fatPoints = [];
+    List<Point> proteinPoints = [];
+
+    for (var s in macroSummaries) {
+      var label = s['date'] as String;
+      var date = DateTime.parse(s['date'] as String);
+      var x = date.difference(after).inDays.toDouble();
+      carbPoints.add(Point(label: label, x: x, y: s['carb_grams'] as double));
+      fatPoints.add(Point(label: label, x: x, y: s['fat_grams'] as double));
+      proteinPoints.add(Point(label: label, x: x, y: s['protein_grams'] as double));
+    }
+
+    return [
+      Trend(
+          name: "Carbohydrates (g)",
+          points: carbPoints,
+          line: Line.linearRegressionOf(carbPoints)),
+      Trend(
+          name: "Fat (g)",
+          points: fatPoints,
+          line: Line.linearRegressionOf(fatPoints)),
+      Trend(
+          name: "Protein (g)",
+          points: proteinPoints,
+          line: Line.linearRegressionOf(proteinPoints)),
+    ];
   }
 }
 

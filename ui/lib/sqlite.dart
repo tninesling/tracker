@@ -83,4 +83,19 @@ class Sqlite {
     JOIN ingredients i
     ON mi.ingredients_id = i.id
   """;
+
+  static String selectMacroSummariesAfterDate() => """
+    SELECT
+      m.date,
+      SUM(i.carb_grams) AS carb_grams,
+      SUM(i.fat_grams) AS fat_grams,
+      SUM(i.protein_grams) AS protein_grams
+    FROM meals m
+    JOIN meals_ingredients mi
+    ON m.id = mi.meals_id
+    JOIN ingredients i
+    ON mi.ingredients_id = i.id
+    WHERE m.date > ?
+    GROUP BY m.date
+  """;
 }

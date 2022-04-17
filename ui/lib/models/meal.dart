@@ -13,24 +13,12 @@ class Meal {
   late final double sodiumMilligrams;
 
   Meal({required this.id, required this.date, required this.ingredients}) {
-    calories = ingredients.fold(0.0, (acc, i) {
-      return acc + i.calories;
-    });
-    carbGrams = ingredients.fold(0.0, (acc, i) {
-      return acc + i.carbGrams;
-    });
-    fatGrams = ingredients.fold(0.0, (acc, i) {
-      return acc + i.fatGrams;
-    });
-    proteinGrams = ingredients.fold(0.0, (acc, i) {
-      return acc + i.proteinGrams;
-    });
-    sugarGrams = ingredients.fold(0.0, (acc, i) {
-      return acc + i.sugarGrams;
-    });
-    sodiumMilligrams = ingredients.fold(0.0, (acc, i) {
-      return acc + i.sodiumMilligrams;
-    });
+    calories = ingredients.fold(0.0, (acc, i) => acc + i.calories);
+    carbGrams = ingredients.fold(0.0, (acc, i) => acc + i.carbGrams);
+    fatGrams = ingredients.fold(0.0, (acc, i) => acc + i.fatGrams);
+    proteinGrams = ingredients.fold(0.0, (acc, i) => acc + i.proteinGrams);
+    sugarGrams = ingredients.fold(0.0, (acc, i) => acc + i.sugarGrams);
+    sodiumMilligrams = ingredients.fold(0.0, (acc, i) => acc + i.sodiumMilligrams);
   }
 
   factory Meal.empty() => Meal(id: '', date: DateTime.now(), ingredients: []);
