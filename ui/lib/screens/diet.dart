@@ -6,6 +6,7 @@ import 'package:ui/storage.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/molecules/bottom_nav.dart';
 import 'package:ui/state.dart';
+import 'package:ui/utils/date_builder.dart';
 
 class DietScreen extends StatefulWidget {
   const DietScreen({Key? key}) : super(key: key);
@@ -20,7 +21,12 @@ class _DietScreenState extends State<DietScreen> {
   @override
   void initState() {
     super.initState();
-    date = DateTime.now();
+    date = DateBuilder().today().dayStart().build();
+    context
+        .read<Storage>()
+        .getFirstPageOfMeals(
+            DateFilter(after: date, before: date.add(const Duration(days: 1))))
+        .then(context.read<AppState>().addMeals);
   }
 
   @override
@@ -35,25 +41,43 @@ class _DietScreenState extends State<DietScreen> {
                 Row(
                   children: [
                     SizedBox(
-                      child: NeumorphicButton(
-                          child: const Center(child: Icon(Icons.arrow_left)),
-                          onPressed: () {
-                            setState(() {
-                              date = date.subtract(const Duration(days: 1));
-                            });
-                          }),
+                      child: Consumer<Storage>(
+                        builder: (context, storage, child) => NeumorphicButton(
+                            child: const Center(child: Icon(Icons.arrow_left)),
+                            onPressed: () {
+                              setState(() {
+                                date = date.subtract(const Duration(days: 1));
+                                // TODO: Get other pages. The summary section will be innacurate if a day has more meals than the page size
+                                storage
+                                    .getFirstPageOfMeals(DateFilter(
+                                        after: date,
+                                        before:
+                                            date.add(const Duration(days: 1))))
+                                    .then(state.addMeals);
+                              });
+                            }),
+                      ),
                       height: 48,
                       width: 48,
                     ),
                     Expanded(child: Center(child: DayDisplay(date: date))),
                     SizedBox(
-                      child: NeumorphicButton(
-                          child: const Center(child: Icon(Icons.arrow_right)),
-                          onPressed: () {
-                            setState(() {
-                              date = date.add(const Duration(days: 1));
-                            });
-                          }),
+                      child: Consumer<Storage>(
+                        builder: (context, storage, child) => NeumorphicButton(
+                            child: const Center(child: Icon(Icons.arrow_right)),
+                            onPressed: () {
+                              setState(() {
+                                date = date.add(const Duration(days: 1));
+                                // TODO: Get other pages. The summary section will be innacurate if a day has more meals than the page size
+                                storage
+                                    .getFirstPageOfMeals(DateFilter(
+                                        after: date,
+                                        before:
+                                            date.add(const Duration(days: 1))))
+                                    .then(state.addMeals);
+                              });
+                            }),
+                      ),
                       height: 48,
                       width: 48,
                     ),

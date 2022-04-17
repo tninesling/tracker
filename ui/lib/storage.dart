@@ -1,5 +1,4 @@
 import 'dart:collection';
-
 import 'package:openapi/api.dart' as openapi;
 import 'package:sqflite/sqflite.dart';
 import 'package:ui/models/meal.dart';
@@ -13,9 +12,18 @@ abstract class Storage {
   Future<Iterable<Ingredient>> getNextPageOfIngredients();
   Future<Meal> createMeal(CreateMealRequest req);
   Future deleteMeal(String mealsId);
-  Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after);
+  Future<Iterable<Meal>> getFirstPageOfMeals(DateFilter dateFilter);
   Future<Iterable<Meal>> getNextPageOfMeals();
   Future<Iterable<Trend>> getMacroTrends(DateTime since);
+}
+
+class DateFilter {
+  DateTime after;
+  DateTime before;
+
+  DateFilter({DateTime? after, DateTime? before})
+      : after = after ?? DateTime.fromMillisecondsSinceEpoch(0),
+        before = before ?? DateTime.now();
 }
 
 class LocalStorage implements Storage {
@@ -87,37 +95,41 @@ class LocalStorage implements Storage {
 
   var mealPageSize = 20;
   var nextMealOffset = 0;
+  var filter = DateFilter();
 
   // TODO: use date filter in SQL query
   @override
-  Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after) async {
-    var records = await db
-        .rawQuery(Sqlite.selectMealsPageAndIngredients(), [mealPageSize, 0]);
+  Future<Iterable<Meal>> getFirstPageOfMeals(DateFilter dateFilter) async {
+    var records = await db.rawQuery(Sqlite.selectMealsPageAndIngredients(), [
+      dateFilter.after.toIso8601String(),
+      dateFilter.before.toIso8601String(),
+      mealPageSize,
+      0
+    ]);
+    var meals = rollupMeals(records);
 
-    var hm = HashMap<String, Meal>();
-    for (var r in records) {
-      var mealsId = r["meals_id"] as String;
-      if (!hm.containsKey(mealsId)) {
-        hm[mealsId] = Meal(
-            id: mealsId,
-            date: DateTime.parse(r["date"] as String),
-            ingredients: []);
-      }
-
-      hm[mealsId]!.ingredients.add(Ingredient.fromMap(r));
-    }
-
-    nextMealOffset = hm.length;
-    return hm.values;
+    filter = dateFilter;
+    nextMealOffset = meals.length;
+    return meals;
   }
 
   @override
   Future<Iterable<Meal>> getNextPageOfMeals() async {
-    var records = await db.rawQuery(
-        Sqlite.selectMealsPageAndIngredients(), [mealPageSize, nextMealOffset]);
+    var records = await db.rawQuery(Sqlite.selectMealsPageAndIngredients(), [
+      filter.after.toIso8601String(),
+      filter.before.toIso8601String(),
+      mealPageSize,
+      nextMealOffset
+    ]);
+    var meals = rollupMeals(records);
 
+    nextMealOffset += meals.length;
+    return meals;
+  }
+
+  Iterable<Meal> rollupMeals(Iterable<Map<String, dynamic>> dbRecords) {
     var hm = HashMap<String, Meal>();
-    for (var r in records) {
+    for (var r in dbRecords) {
       var mealsId = r["meals_id"] as String;
       if (!hm.containsKey(mealsId)) {
         hm[mealsId] = Meal(
@@ -129,7 +141,6 @@ class LocalStorage implements Storage {
       hm[mealsId]!.ingredients.add(Ingredient.fromMap(r));
     }
 
-    nextMealOffset += hm.length;
     return hm.values;
   }
 
@@ -200,10 +211,11 @@ class RemoteStorage implements Storage {
   }
 
   @override
-  Future<Iterable<Meal>> getFirstPageOfMeals(DateTime after) async {
+  Future<Iterable<Meal>> getFirstPageOfMeals(DateFilter dateFilter) async {
     try {
-      var page =
-          await openapiClient.getMeals(after: after, limit: mealPageSize);
+      // TODO: Incorporate before parameter from filter
+      var page = await openapiClient.getMeals(
+          after: dateFilter.after, limit: mealPageSize);
       nextMealsPageToken = page.nextPage;
 
       return page.items.map(Meal.fromOpenapi);

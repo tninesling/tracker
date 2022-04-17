@@ -60,6 +60,8 @@ class Sqlite {
   static String selectMealsPageAndIngredients() => """
     WITH meals_page AS (
       SELECT * FROM meals
+      WHERE date > ?
+        AND date < ?
       LIMIT ?
       OFFSET ?
     )
