@@ -14,20 +14,22 @@ class DayDisplay extends StatelessWidget {
   String dateText(DateTime date) {
     var thisMorning = DateBuilder().today().dayStart().build();
 
-    if (date.isAfter(thisMorning.add(const Duration(days: 2)))) {
+    // Using !isBefore instead of isAfter allows the first moment of the day to
+    // be included in that day
+    if (!date.isBefore(thisMorning.add(const Duration(days: 2)))) {
       var asString = date.toIso8601String().substring(5, 10);
       return asString.startsWith('0') ? asString.substring(1) : asString;
     }
 
-    if (date.isAfter(thisMorning.add(const Duration(days: 1)))) {
+    if (!date.isBefore(thisMorning.add(const Duration(days: 1)))) {
       return "Tomorrow";
     }
 
-    if (date.isAfter(thisMorning)) {
+    if (!date.isBefore(thisMorning)) {
       return "Today";
     }
 
-    if (date.isAfter(thisMorning.subtract(const Duration(days: 1)))) {
+    if (!date.isBefore(thisMorning.subtract(const Duration(days: 1)))) {
       return "Yesterday";
     }
 
