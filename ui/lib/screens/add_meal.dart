@@ -14,7 +14,7 @@ class AddMealScreen extends StatelessWidget {
           Navigator.of(context).pop();
         })),
       ),
-      bottomNavigationBar: const BottomNav(groupValue: "Add"),
+      bottomNavigationBar: const BottomNav(currentScreen: Screens.add),
     );
   }
 }

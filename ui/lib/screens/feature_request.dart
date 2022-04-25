@@ -9,7 +9,7 @@ class FeatureRequest extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(child: TextFromTheDepths(text: "Looking for something?")),
-      bottomNavigationBar: BottomNav(groupValue: "Add"),
+      bottomNavigationBar: BottomNav(currentScreen: Screens.add),
     );
   }
 }

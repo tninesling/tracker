@@ -14,7 +14,7 @@ class TrendsScreen extends StatelessWidget {
       body: Padding(
           padding: EdgeInsets.symmetric(vertical: 32, horizontal: 8),
           child: Center(child: TrendChart())),
-      bottomNavigationBar: BottomNav(groupValue: "Trends"),
+      bottomNavigationBar: BottomNav(currentScreen: Screens.trends),
     );
   }
 }
@@ -42,24 +42,25 @@ class TrendChartState extends State<TrendChart> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Iterable<Trend>>(
-      future: trends,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else if (!snapshot.hasData) {
-          return const CircularProgressIndicator();
-        }
+        future: trends,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else if (!snapshot.hasData) {
+            return const CircularProgressIndicator();
+          }
 
-        var trends = snapshot.data!.toList();
-        return ListView(
-          children: trends.expand((trend) => [
-            Text(trend.name),
-            AspectRatio(
-              aspectRatio: 1.7,
-              child: ScatterPlot(trends: [trend]),
-            )
-          ]).toList()
-        );
-      });
+          var trends = snapshot.data!.toList();
+          return ListView(
+              children: trends
+                  .expand((trend) => [
+                        Text(trend.name),
+                        AspectRatio(
+                          aspectRatio: 1.7,
+                          child: ScatterPlot(trends: [trend]),
+                        )
+                      ])
+                  .toList());
+        });
   }
 }

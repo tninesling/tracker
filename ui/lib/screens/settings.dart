@@ -10,17 +10,15 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NeumorphicBackground(
-        child:
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 8),
-            child: Column(children: [
-              _buildThemeSwitcher(context),
-              _buildTargetCaloriesSetter(),
-            ]
-          ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 8),
+          child: Column(children: [
+            _buildThemeSwitcher(context),
+            _buildTargetCaloriesSetter(),
+          ]),
         ),
       ),
-      bottomNavigationBar: const BottomNav(groupValue: "Settings"),
+      bottomNavigationBar: const BottomNav(currentScreen: Screens.settings),
     );
   }
 

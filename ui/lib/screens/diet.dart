@@ -97,7 +97,7 @@ class _DietScreenState extends State<DietScreen> {
               ],
             );
           })),
-      bottomNavigationBar: const BottomNav(groupValue: "Diet"),
+      bottomNavigationBar: const BottomNav(currentScreen: Screens.diet),
     );
   }
 

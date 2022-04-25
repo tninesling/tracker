@@ -1,15 +1,25 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:ui/atoms/themed_icon.dart';
+import 'package:ui/screens/add_exercise.dart';
 import 'package:ui/screens/add_meal.dart';
+import 'package:ui/screens/exercise.dart';
 import 'package:ui/screens/feature_request.dart';
 import 'package:ui/screens/diet.dart';
 import 'package:ui/screens/settings.dart';
 import 'package:ui/screens/trends.dart';
 
-class BottomNav extends StatelessWidget {
-  final String groupValue;
+enum Screens {
+  add,
+  diet,
+  exercise,
+  settings,
+  trends,
+}
 
-  const BottomNav({Key? key, required this.groupValue}) : super(key: key);
+class BottomNav extends StatelessWidget {
+  final Screens currentScreen;
+
+  const BottomNav({Key? key, required this.currentScreen}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,31 +33,42 @@ class BottomNav extends StatelessWidget {
             children: [
               NeumorphicRadio(
                 child: const ThemedIcon(Icons.trending_up_sharp),
-                value: "Trends",
-                groupValue: groupValue,
+                value: Screens.trends,
+                groupValue: currentScreen,
                 onChanged: (str) {
-                  Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (ctx) => TrendsScreen()));
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (ctx) => const TrendsScreen()));
                 },
               ),
               NeumorphicRadio(
                 child: const ThemedIcon(Icons.ramen_dining_sharp),
-                value: "Diet",
-                groupValue: groupValue,
+                value: Screens.diet,
+                groupValue: currentScreen,
                 onChanged: (str) {
                   Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (ctx) => DietScreen()));
+                      MaterialPageRoute(builder: (ctx) => const DietScreen()));
+                },
+              ),
+              NeumorphicRadio(
+                child: const ThemedIcon(Icons.fitness_center_sharp),
+                value: Screens.exercise,
+                groupValue: currentScreen,
+                onChanged: (str) {
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (ctx) => const ExerciseScreen()));
                 },
               ),
               NeumorphicRadio(
                 child: const ThemedIcon(Icons.plus_one_sharp),
-                value: "Add",
-                groupValue: groupValue,
+                value: Screens.add,
+                groupValue: currentScreen,
                 onChanged: (str) {
                   Navigator.of(context).push(MaterialPageRoute(builder: (ctx) {
-                    switch (groupValue) {
-                      case "Diet":
+                    switch (currentScreen) {
+                      case Screens.diet:
                         return const AddMealScreen();
+                      case Screens.exercise:
+                        return const AddExerciseScreen();
                       default:
                         return const FeatureRequest();
                     }
@@ -56,8 +77,8 @@ class BottomNav extends StatelessWidget {
               ),
               NeumorphicRadio(
                 child: const ThemedIcon(Icons.settings),
-                value: "Settings",
-                groupValue: groupValue,
+                value: Screens.settings,
+                groupValue: currentScreen,
                 onChanged: (str) {
                   Navigator.of(context).pushReplacement(MaterialPageRoute(
                       builder: (ctx) => const SettingsScreen()));
