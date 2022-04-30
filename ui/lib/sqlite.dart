@@ -29,6 +29,24 @@ class Sqlite {
     );
   """;
 
+  static String createWorkoutsTable() => """
+    CREATE TABLE IF NOT EXISTS workouts(
+      id TEXT NOT NULL PRIMARY KEY,
+      date TEXT NOT NULL
+    );
+  """;
+
+  static String createExercisesTable() => """
+    CREATE TABLE IF NOT EXISTS exercises(
+      id TEXT NOT NULL PRIMARY KEY,
+      workout_order INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      unit TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      workouts_id INTEGER NOT NULL REFERENCES workouts(id) ON DELETE CASCADE
+    );
+  """;
+
   static String selectAllMealsAndIngredientAmounts() => """
     SELECT m.id, m.date, mi.ingredients_id, mi.amount_grams
     FROM meals m

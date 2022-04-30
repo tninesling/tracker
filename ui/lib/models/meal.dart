@@ -18,7 +18,8 @@ class Meal {
     fatGrams = ingredients.fold(0.0, (acc, i) => acc + i.fatGrams);
     proteinGrams = ingredients.fold(0.0, (acc, i) => acc + i.proteinGrams);
     sugarGrams = ingredients.fold(0.0, (acc, i) => acc + i.sugarGrams);
-    sodiumMilligrams = ingredients.fold(0.0, (acc, i) => acc + i.sodiumMilligrams);
+    sodiumMilligrams =
+        ingredients.fold(0.0, (acc, i) => acc + i.sodiumMilligrams);
   }
 
   factory Meal.empty() => Meal(id: '', date: DateTime.now(), ingredients: []);
@@ -34,34 +35,6 @@ class Meal {
         date: date,
         ingredients: [...ingredients, ...other.ingredients],
       );
-}
-
-class MealSet extends Iterable<Meal> {
-  final Set<String> _ids = {};
-  final List<Meal> _meals = [];
-
-  MealSet({Iterable<Meal>? meals}) {
-    if (meals != null) {
-      addAll(meals);
-    }
-  }
-
-  void addAll(Iterable<Meal> ms) {
-    for (Meal m in ms) {
-      if (!_ids.contains(m.id)) {
-        _ids.add(m.id);
-        _meals.add(m);
-      }
-    }
-  }
-
-  void remove(Meal m) {
-    _ids.remove(m.id);
-    _meals.remove(m);
-  }
-
-  @override
-  Iterator<Meal> get iterator => _meals.iterator;
 }
 
 class CreateMealRequest {

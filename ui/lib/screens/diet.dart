@@ -17,16 +17,14 @@ class DietScreen extends StatefulWidget {
 
 class _DietScreenState extends State<DietScreen> {
   late DateTime date;
+  late Future<Iterable<Meal>> futureMeals;
 
   @override
   void initState() {
     super.initState();
     date = DateBuilder().today().dayStart().build();
-    context
-        .read<Storage>()
-        .getFirstPageOfMeals(
-            DateFilter(after: date, before: date.add(const Duration(days: 1))))
-        .then(context.read<AppState>().addMeals);
+    futureMeals = context.read<Storage>().getAllMeals(
+        DateFilter(after: date, before: date.add(const Duration(days: 1))));
   }
 
   @override
@@ -35,88 +33,118 @@ class _DietScreenState extends State<DietScreen> {
       body: Padding(
           padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 8.0),
           child: Consumer<AppState>(builder: (context, state, child) {
-            var meals = state.mealsOnDay(date);
             return ListView(
               children: [
-                Row(
-                  children: [
-                    SizedBox(
-                      child: Consumer<Storage>(
-                        builder: (context, storage, child) => NeumorphicButton(
-                            child: const Center(child: Icon(Icons.arrow_left)),
-                            onPressed: () {
-                              setState(() {
-                                date = date.subtract(const Duration(days: 1));
-                                // TODO: Get other pages. The summary section will be innacurate if a day has more meals than the page size
-                                storage
-                                    .getFirstPageOfMeals(DateFilter(
-                                        after: date,
-                                        before:
-                                            date.add(const Duration(days: 1))))
-                                    .then(state.addMeals);
-                              });
-                            }),
-                      ),
-                      height: 48,
-                      width: 48,
-                    ),
-                    Expanded(child: Center(child: DayDisplay(date: date))),
-                    SizedBox(
-                      child: Consumer<Storage>(
-                        builder: (context, storage, child) => NeumorphicButton(
-                            child: const Center(child: Icon(Icons.arrow_right)),
-                            onPressed: () {
-                              setState(() {
-                                date = date.add(const Duration(days: 1));
-                                // TODO: Get other pages. The summary section will be innacurate if a day has more meals than the page size
-                                storage
-                                    .getFirstPageOfMeals(DateFilter(
-                                        after: date,
-                                        before:
-                                            date.add(const Duration(days: 1))))
-                                    .then(state.addMeals);
-                              });
-                            }),
-                      ),
-                      height: 48,
-                      width: 48,
-                    ),
-                  ],
+                Header(
+                  child: DayDisplay(date: date),
+                  onArrowLeft: () {
+                    setState(() {
+                      date = date.subtract(const Duration(days: 1));
+                      futureMeals = context.read<Storage>().getAllMeals(
+                          DateFilter(
+                              after: date,
+                              before: date.add(const Duration(days: 1))));
+                    });
+                  },
+                  onArrowRight: () {
+                    setState(() {
+                      date = date.add(const Duration(days: 1));
+                      futureMeals = context.read<Storage>().getAllMeals(
+                          DateFilter(
+                              after: date,
+                              before: date.add(const Duration(days: 1))));
+                    });
+                  },
                 ),
                 const Text("Summary",
                     style:
                         TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                Consumer<AppState>(
-                    builder: (context, state, child) =>
-                        Indicators(meals: meals)),
+                FutureBuilder<Iterable<Meal>>(
+                  future: futureMeals,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text("Error");
+                    }
+
+                    if (!snapshot.hasData) {
+                      return Text("Loading");
+                    }
+
+                    return Indicators(meals: snapshot.data!);
+                  },
+                ),
                 const Divider(),
                 const Text("Meals",
                     style:
                         TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                ...meals.map(buildMealRow),
+                SizedBox(
+                  height: 1000,
+                  child: FutureBuilder<Iterable<Meal>>(
+                    future: futureMeals,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Text("Error");
+                      }
+
+                      if (!snapshot.hasData) {
+                        return Text("Loading");
+                      }
+
+                      return ListView.builder(
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) =>
+                            MealRow(meal: snapshot.data!.elementAt(index)),
+                      );
+                    },
+                  ),
+                )
               ],
             );
           })),
       bottomNavigationBar: const BottomNav(currentScreen: Screens.diet),
     );
   }
+}
 
-  Widget buildMealRow(Meal meal) {
+class Header extends StatelessWidget {
+  final Widget child;
+  final Function onArrowLeft;
+  final Function onArrowRight;
+
+  const Header(
+      {required this.child,
+      required this.onArrowLeft,
+      required this.onArrowRight});
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: TimeDisplay(date: meal.date)),
-        Consumer<Storage>(builder: (context1, storage, child1) {
-          return Consumer<AppState>(builder: (context2, memory, child2) {
-            return IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                storage
-                    .deleteMeal(meal.id)
-                    .then((_) => memory.removeMeal(meal));
-              },
-            );
-          });
-        })
+        SizedBox(
+          child: Consumer<Storage>(
+            builder: (context, storage, child) => NeumorphicButton(
+                child: const Center(child: Icon(Icons.arrow_left)),
+                onPressed: () {
+                  onArrowLeft();
+                }),
+          ),
+          height: 48,
+          width: 48,
+        ),
+        Expanded(
+            child: Center(
+                child: child)), // Center(child: DayDisplay(date: date))),
+        SizedBox(
+          child: Consumer<Storage>(
+            builder: (context, storage, child) => NeumorphicButton(
+                child: const Center(child: Icon(Icons.arrow_right)),
+                onPressed: () {
+                  onArrowRight();
+                }),
+          ),
+          height: 48,
+          width: 48,
+        ),
       ],
     );
   }

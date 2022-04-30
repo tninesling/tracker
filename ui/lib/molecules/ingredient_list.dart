@@ -15,7 +15,7 @@ class IngredientList extends StatelessWidget {
     context
         .read<Storage>()
         .getFirstPageOfIngredients()
-        .then(context.read<AppState>().setIngredients);
+        .then(context.read<AppState>().addIngredients);
 
     return Consumer<AppState>(builder: (context, state, child) {
       return ListView.builder(
@@ -25,10 +25,10 @@ class IngredientList extends StatelessWidget {
             context
                 .read<Storage>()
                 .getNextPageOfIngredients()
-                .then(state.appendIngredients);
+                .then(state.addIngredients);
           }
 
-          return displayIngredient(state.ingredients()[index]);
+          return displayIngredient(state.ingredients().elementAt(index));
         },
       );
     });

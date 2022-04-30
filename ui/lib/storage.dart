@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'package:openapi/api.dart' as openapi;
 import 'package:sqflite/sqflite.dart';
+import 'package:ui/models/exercise.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/models/trend.dart';
 import 'package:ui/sqlite.dart';
@@ -12,9 +13,45 @@ abstract class Storage {
   Future<Iterable<Ingredient>> getNextPageOfIngredients();
   Future<Meal> createMeal(CreateMealRequest req);
   Future deleteMeal(String mealsId);
+  Future<Iterable<Meal>> getAllMeals(DateFilter dateFilter);
   Future<Iterable<Meal>> getFirstPageOfMeals(DateFilter dateFilter);
   Future<Iterable<Meal>> getNextPageOfMeals();
   Future<Iterable<Trend>> getMacroTrends(DateTime since);
+  Future<Workout> createWorkout(CreateWorkoutRequest req);
+  Future deleteWorkout(String workoutsId);
+  Future<Iterable<Workout>> getAllWorkouts();
+  Future<Iterable<Workout>> getFirstPageOfWorkouts();
+  Future<Iterable<Workout>> getNextPageOfWorkouts();
+}
+
+mixin SyntacticSugar on Storage {
+  @override
+  Future<Iterable<Meal>> getAllMeals(DateFilter dateFilter) async {
+    var allMealsLoaded = false;
+    List<Meal> meals = (await getFirstPageOfMeals(dateFilter)).toList();
+
+    while (!allMealsLoaded) {
+      var nextPage = await getNextPageOfMeals();
+      meals.addAll(nextPage);
+      allMealsLoaded = nextPage.isEmpty;
+    }
+
+    return meals;
+  }
+
+  @override
+  Future<Iterable<Workout>> getAllWorkouts() async {
+    var allWorkoutsLoaded = false;
+    List<Workout> workouts = (await getFirstPageOfWorkouts()).toList();
+
+    while (!allWorkoutsLoaded) {
+      var nextPage = await getNextPageOfWorkouts();
+      workouts.addAll(nextPage);
+      allWorkoutsLoaded = nextPage.isEmpty;
+    }
+
+    return workouts;
+  }
 }
 
 class DateFilter {
@@ -26,7 +63,7 @@ class DateFilter {
         before = before ?? DateTime.now();
 }
 
-class LocalStorage implements Storage {
+class LocalStorage extends Storage with SyntacticSugar {
   Database db;
 
   LocalStorage({required this.db});
@@ -59,8 +96,7 @@ class LocalStorage implements Storage {
   @override
   Future<Meal> createMeal(CreateMealRequest req) async {
     var id = const Uuid().v4();
-    await db.insert(
-        'meals', {'id': id, 'date': req.date.toUtc().toIso8601String()});
+    await db.insert('meals', {'id': id, 'date': req.date.toIso8601String()});
     for (var entry in req.ingredientAmounts.entries) {
       await db.insert('meals_ingredients', {
         'meals_id': id,
@@ -97,7 +133,6 @@ class LocalStorage implements Storage {
   var nextMealOffset = 0;
   var filter = DateFilter();
 
-  // TODO: use date filter in SQL query
   @override
   Future<Iterable<Meal>> getFirstPageOfMeals(DateFilter dateFilter) async {
     var records = await db.rawQuery(Sqlite.selectMealsPageAndIngredients(), [
@@ -158,7 +193,8 @@ class LocalStorage implements Storage {
       var x = date.difference(after).inDays.toDouble();
       carbPoints.add(Point(label: label, x: x, y: s['carb_grams'] as double));
       fatPoints.add(Point(label: label, x: x, y: s['fat_grams'] as double));
-      proteinPoints.add(Point(label: label, x: x, y: s['protein_grams'] as double));
+      proteinPoints
+          .add(Point(label: label, x: x, y: s['protein_grams'] as double));
     }
 
     return [
@@ -176,9 +212,45 @@ class LocalStorage implements Storage {
           line: Line.linearRegressionOf(proteinPoints)),
     ];
   }
+
+  @override
+  Future<Workout> createWorkout(CreateWorkoutRequest req) async {
+    var workoutsId = const Uuid().v4();
+    await db.insert(
+        'workouts', {'id': workoutsId, 'date': req.date.toIso8601String()});
+    var workout = Workout(id: workoutsId, date: req.date, items: []);
+
+    var exercises = req.items.toList();
+    for (var i = 0; i < exercises.length; i++) {
+      var exercisesId = const Uuid().v4();
+      var newItem = WorkoutItem.fromRequest(exercisesId, exercises[i]);
+      await db.insert('exercises', newItem.toMap());
+      workout.items.add(newItem);
+    }
+
+    return workout;
+  }
+
+  @override
+  Future<Iterable<Workout>> getFirstPageOfWorkouts() async {
+    return [
+      Workout(id: "workout1", date: DateTime.now(), items: []),
+      Workout(id: "workout2", date: DateTime.now(), items: [])
+    ];
+  }
+
+  @override
+  Future<Iterable<Workout>> getNextPageOfWorkouts() async {
+    return [];
+  }
+
+  @override
+  Future deleteWorkout(String workoutsId) async {
+    await db.delete('workouts', where: 'id = ?', whereArgs: [workoutsId]);
+  }
 }
 
-class RemoteStorage implements Storage {
+class RemoteStorage extends Storage with SyntacticSugar {
   final ingredientPageSize = 20;
   final mealPageSize = 20;
   final openapi.DefaultApi openapiClient;
@@ -263,5 +335,29 @@ class RemoteStorage implements Storage {
     nextMealsPageToken = page.nextPage;
 
     return page.items.map(Meal.fromOpenapi);
+  }
+
+  @override
+  Future<Iterable<Workout>> getFirstPageOfWorkouts() {
+    // TODO: implement getFirstPageOfWorkouts
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Iterable<Workout>> getNextPageOfWorkouts() {
+    // TODO: implement getNextPageOfWorkouts
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Workout> createWorkout(CreateWorkoutRequest req) {
+    // TODO: implement createWorkout
+    throw UnimplementedError();
+  }
+
+  @override
+  Future deleteWorkout(String workoutsId) {
+    // TODO: implement deleteWorkout
+    throw UnimplementedError();
   }
 }

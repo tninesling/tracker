@@ -9,15 +9,18 @@ import 'package:ui/state.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final database = await openDatabase(
-    join(await getDatabasesPath(), 'heath.db'),
-    onCreate: (db, version) async {
-      await db.execute(Sqlite.createIngredientsTable());
-      await db.execute(Sqlite.createMealsTable());
-      await db.execute(Sqlite.createMealsIngredientsTable());
-    },
-    version: 1
-  );
+  final database =
+      await openDatabase(join(await getDatabasesPath(), 'heath.db'),
+          onCreate: (db, version) async {
+    await db.execute(Sqlite.createIngredientsTable());
+    await db.execute(Sqlite.createMealsTable());
+    await db.execute(Sqlite.createMealsIngredientsTable());
+  }, onUpgrade: (db, oldVersion, newVersion) async {
+    if (oldVersion == 1 && newVersion == 2) {
+      await db.execute(Sqlite.createWorkoutsTable());
+      await db.execute(Sqlite.createExercisesTable());
+    }
+  }, version: 2);
 
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (_) => AppState()),
