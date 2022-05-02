@@ -5,6 +5,7 @@ import 'package:ui/atoms/time_display.dart';
 import 'package:ui/models/workout.dart';
 import 'package:ui/molecules/bottom_nav.dart';
 import 'package:ui/models/workout.dart' as models;
+import 'package:ui/state.dart';
 import 'package:ui/storage.dart';
 
 class ExerciseScreen extends StatefulWidget {
@@ -20,35 +21,21 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   @override
   void initState() {
     super.initState();
-    workouts = context.read<Storage>().getAllWorkouts();
+    
+    context.read<Storage>().getAllWorkouts().then(context.read<AppState>().addWorkouts);
   }
 
-  // TODO rebuild when new workout is created
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
           padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 8),
           child: Center(
-              child: FutureBuilder<Iterable<Workout>>(
-                  future: workouts,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Text(snapshot.error.toString());
-                    }
-
-                    if (!snapshot.hasData) {
-                      return const Text("Loading");
-                    }
-
-                    return ListView(
-                      children: snapshot.data!
-                          .map((w) => WorkoutRow(
-                                workout: w,
-                              ))
-                          .toList(),
-                    );
-                  }))),
+              child: Consumer<AppState>(builder: (context, state, child) => ListView(
+                children: [
+                  ...state.workouts().map((w) => WorkoutRow(workout: w))
+                ],
+              )))),
       bottomNavigationBar: const BottomNav(currentScreen: Screens.exercise),
     );
   }
@@ -68,8 +55,8 @@ class WorkoutRow extends StatelessWidget {
         NeumorphicButton(
           child: const Text("Delete"),
           onPressed: () {
-            // TODO rebuild component when this completes
-            context.read<Storage>().deleteWorkout(workout.id);
+            context.read<Storage>().deleteWorkout(workout.id)
+              .then((_) => context.read<AppState>().removeWorkout(workout));
           },
         )
       ],

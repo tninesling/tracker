@@ -57,6 +57,16 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
+  void addWorkouts(Iterable<Workout> workouts) {
+    _workouts.addAll(workouts);
+    notifyListeners();
+  }
+
+  void removeWorkout(Workout workout) {
+    _workouts.remove(workout);
+    notifyListeners();
+  }
+
   Iterable<Meal> todaysMeals() => meals()
       .where((m) => m.date.isAfter(DateBuilder().today().dayStart().build()));
 

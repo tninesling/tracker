@@ -3,6 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:ui/molecules/bottom_nav.dart';
 import 'package:ui/molecules/workout_input.dart';
+import 'package:ui/state.dart';
 import 'package:ui/storage.dart';
 
 class AddWorkoutScreen extends StatelessWidget {
@@ -17,11 +18,12 @@ class AddWorkoutScreen extends StatelessWidget {
             child: Consumer<Storage>(
           builder: (context, storage, child) =>
               WorkoutInput(onSubmit: (unsavedWorkout) {
-            storage
-                .createWorkout(unsavedWorkout)
-                .then((_) => Navigator.of(context).pop())
-                .onError((error, stackTrace) =>
-                    Fluttertoast.showToast(msg: error.toString()));
+            storage.createWorkout(unsavedWorkout).then((workout) {
+              context.read<AppState>().addWorkouts([workout]);
+              Navigator.of(context).pop();
+            }).onError((error, stackTrace) {
+              Fluttertoast.showToast(msg: error.toString());
+            });
           }),
         )),
       ),
