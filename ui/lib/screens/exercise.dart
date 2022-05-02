@@ -1,8 +1,10 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
-import 'package:ui/models/exercise.dart';
+import 'package:ui/atoms/day_display.dart';
+import 'package:ui/atoms/time_display.dart';
+import 'package:ui/models/workout.dart';
 import 'package:ui/molecules/bottom_nav.dart';
-import 'package:ui/models/exercise.dart' as models;
+import 'package:ui/models/workout.dart' as models;
 import 'package:ui/storage.dart';
 
 class ExerciseScreen extends StatefulWidget {
@@ -21,6 +23,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     workouts = context.read<Storage>().getAllWorkouts();
   }
 
+  // TODO rebuild when new workout is created
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,6 +61,19 @@ class WorkoutRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(workout.id);
+    return Row(
+      children: [
+        DayDisplay(date: workout.date),
+        TimeDisplay(date: workout.date),
+        NeumorphicButton(
+          child: const Text("Delete"),
+          onPressed: () {
+            // TODO rebuild component when this completes
+            context.read<Storage>().deleteWorkout(workout.id);
+          },
+        )
+      ],
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    );
   }
 }

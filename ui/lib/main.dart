@@ -15,12 +15,10 @@ void main() async {
     await db.execute(Sqlite.createIngredientsTable());
     await db.execute(Sqlite.createMealsTable());
     await db.execute(Sqlite.createMealsIngredientsTable());
-  }, onUpgrade: (db, oldVersion, newVersion) async {
-    if (oldVersion == 1 && newVersion == 2) {
-      await db.execute(Sqlite.createWorkoutsTable());
-      await db.execute(Sqlite.createExercisesTable());
-    }
-  }, version: 2);
+    await db.execute(Sqlite.createWorkoutsTable());
+    await db.execute(Sqlite.createExercisesTable());
+    await db.execute(Sqlite.createWorkoutsExercisesTable());
+  }, version: 1);
 
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (_) => AppState()),

@@ -1,6 +1,6 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:ui/atoms/themed_icon.dart';
-import 'package:ui/screens/add_exercise.dart';
+import 'package:ui/screens/add_workout.dart';
 import 'package:ui/screens/add_meal.dart';
 import 'package:ui/screens/exercise.dart';
 import 'package:ui/screens/feature_request.dart';
@@ -68,7 +68,7 @@ class BottomNav extends StatelessWidget {
                       case Screens.diet:
                         return const AddMealScreen();
                       case Screens.exercise:
-                        return const AddExerciseScreen();
+                        return const AddWorkoutScreen();
                       default:
                         return const FeatureRequest();
                     }

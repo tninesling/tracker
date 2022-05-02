@@ -39,11 +39,18 @@ class Sqlite {
   static String createExercisesTable() => """
     CREATE TABLE IF NOT EXISTS exercises(
       id TEXT NOT NULL PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE ON CONFLICT ROLLBACK,
+      unit TEXT NOT NULL
+    );
+  """;
+
+  static String createWorkoutsExercisesTable() => """
+    CREATE TABLE IF NOT EXISTS workouts_exercises(
+      workouts_id TEXT NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
+      exercises_id TEXT NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
+      amount REAL NOT NULL,
       workout_order INTEGER NOT NULL,
-      name TEXT NOT NULL,
-      unit TEXT NOT NULL,
-      amount INTEGER NOT NULL,
-      workouts_id INTEGER NOT NULL REFERENCES workouts(id) ON DELETE CASCADE
+      PRIMARY KEY (workouts_id, exercises_id)
     );
   """;
 
@@ -115,5 +122,55 @@ class Sqlite {
     ON mi.ingredients_id = i.id
     WHERE m.date > ?
     GROUP BY m.date
+  """;
+
+  static String selectWorkoutsPageAndExercises() => """
+    WITH workouts_page AS (
+      SELECT * FROM workouts
+      LIMIT ?
+      OFFSET ?
+    )
+    SELECT
+      w.id AS workouts_id,
+      w.date AS date,
+      e.id AS id,
+      e.name AS name,
+      e.unit AS unit,
+      we.amount AS amount,
+      we.workout_order AS workout_order
+    FROM workouts_page w
+    JOIN workouts_exercises we
+    ON w.id = we.workouts_id
+    JOIN exercises e
+    ON we.exercises_id = e.id
+  """;
+
+  static String selectWorkoutAndExercisesForWorkout() => """
+    SELECT
+      w.id AS workouts_id,
+      w.date AS date,
+      e.id AS id,
+      e.name AS name,
+      e.unit AS unit,
+      we.amount AS amount,
+      we.workout_order AS workout_order
+    FROM workouts w
+    JOIN workouts_exercises we
+    ON w.id = we.workouts_id
+    JOIN exercises e
+    ON we.exercises_id = e.id
+    WHERE w.id = ?
+  """;
+
+  static String selectExercises() => """
+    SELECT
+      id,
+      workout_order,
+      name,
+      unit,
+      0 AS amount
+    FROM exercises,
+    LIMIT ?
+    OFFSET ?
   """;
 }

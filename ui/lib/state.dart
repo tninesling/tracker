@@ -1,7 +1,7 @@
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
-import 'package:ui/models/exercise.dart';
+import 'package:ui/models/workout.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/utils/date_builder.dart';
 

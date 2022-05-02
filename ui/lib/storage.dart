@@ -1,7 +1,7 @@
 import 'dart:collection';
 import 'package:openapi/api.dart' as openapi;
 import 'package:sqflite/sqflite.dart';
-import 'package:ui/models/exercise.dart';
+import 'package:ui/models/workout.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/models/trend.dart';
 import 'package:ui/sqlite.dart';
@@ -17,6 +17,9 @@ abstract class Storage {
   Future<Iterable<Meal>> getFirstPageOfMeals(DateFilter dateFilter);
   Future<Iterable<Meal>> getNextPageOfMeals();
   Future<Iterable<Trend>> getMacroTrends(DateTime since);
+  Future<Exercise> createExercise(CreateExerciseRequest req);
+  Future<Iterable<Exercise>> getFirstPageOfExercises();
+  Future<Iterable<Exercise>> getNextPageOfExercises();
   Future<Workout> createWorkout(CreateWorkoutRequest req);
   Future deleteWorkout(String workoutsId);
   Future<Iterable<Workout>> getAllWorkouts();
@@ -79,10 +82,9 @@ class LocalStorage extends Storage with SyntacticSugar {
   var nextIngredientOffset = 0;
 
   @override
-  Future<Iterable<Ingredient>> getFirstPageOfIngredients() async {
-    var records = await db.query('ingredients', limit: ingredientPageSize);
-    nextIngredientOffset = ingredientPageSize;
-    return records.map(Ingredient.fromMap);
+  Future<Iterable<Ingredient>> getFirstPageOfIngredients() {
+    nextIngredientOffset = 0;
+    return getNextPageOfIngredients();
   }
 
   @override
@@ -134,18 +136,10 @@ class LocalStorage extends Storage with SyntacticSugar {
   var filter = DateFilter();
 
   @override
-  Future<Iterable<Meal>> getFirstPageOfMeals(DateFilter dateFilter) async {
-    var records = await db.rawQuery(Sqlite.selectMealsPageAndIngredients(), [
-      dateFilter.after.toIso8601String(),
-      dateFilter.before.toIso8601String(),
-      mealPageSize,
-      0
-    ]);
-    var meals = rollupMeals(records);
-
+  Future<Iterable<Meal>> getFirstPageOfMeals(DateFilter dateFilter) {
     filter = dateFilter;
-    nextMealOffset = meals.length;
-    return meals;
+    nextMealOffset = 0;
+    return getNextPageOfMeals();
   }
 
   @override
@@ -156,15 +150,8 @@ class LocalStorage extends Storage with SyntacticSugar {
       mealPageSize,
       nextMealOffset
     ]);
-    var meals = rollupMeals(records);
-
-    nextMealOffset += meals.length;
-    return meals;
-  }
-
-  Iterable<Meal> rollupMeals(Iterable<Map<String, dynamic>> dbRecords) {
     var hm = HashMap<String, Meal>();
-    for (var r in dbRecords) {
+    for (var r in records) {
       var mealsId = r["meals_id"] as String;
       if (!hm.containsKey(mealsId)) {
         hm[mealsId] = Meal(
@@ -175,6 +162,7 @@ class LocalStorage extends Storage with SyntacticSugar {
 
       hm[mealsId]!.ingredients.add(Ingredient.fromMap(r));
     }
+    nextMealOffset += hm.values.length;
 
     return hm.values;
   }
@@ -216,37 +204,95 @@ class LocalStorage extends Storage with SyntacticSugar {
   @override
   Future<Workout> createWorkout(CreateWorkoutRequest req) async {
     var workoutsId = const Uuid().v4();
+    // TODO: wrap in a transaction
     await db.insert(
         'workouts', {'id': workoutsId, 'date': req.date.toIso8601String()});
-    var workout = Workout(id: workoutsId, date: req.date, items: []);
 
-    var exercises = req.items.toList();
-    for (var i = 0; i < exercises.length; i++) {
-      var exercisesId = const Uuid().v4();
-      var newItem = WorkoutItem.fromRequest(exercisesId, exercises[i]);
-      await db.insert('exercises', newItem.toMap());
-      workout.items.add(newItem);
+    for (var entry in req.exerciseAmounts.entries) {
+      await db.insert('workouts_exercises', {
+        'workouts_id': workoutsId,
+        'exercises_id': entry.key,
+        'amount': entry.value,
+        'workout_order': req.exerciseOrder[entry.key],
+      });
+    }
+
+    return (await getWorkoutById(workoutsId))!;
+  }
+
+  Future<Workout?> getWorkoutById(String id) async {
+    var records =
+        await db.rawQuery(Sqlite.selectWorkoutAndExercisesForWorkout(), [id]);
+
+    Workout? workout;
+    for (var r in records) {
+      workout ??= Workout(
+          id: r["workouts_id"] as String,
+          date: DateTime.parse(r["date"] as String),
+          exercises: []);
+      workout.exercises.add(Exercise.fromMap(r));
     }
 
     return workout;
   }
 
+  var workoutPageSize = 20;
+  var nextWorkoutPageOffset = 0;
+
   @override
-  Future<Iterable<Workout>> getFirstPageOfWorkouts() async {
-    return [
-      Workout(id: "workout1", date: DateTime.now(), items: []),
-      Workout(id: "workout2", date: DateTime.now(), items: [])
-    ];
+  Future<Iterable<Workout>> getFirstPageOfWorkouts() {
+    nextWorkoutPageOffset = 0;
+    return getNextPageOfWorkouts();
   }
 
   @override
   Future<Iterable<Workout>> getNextPageOfWorkouts() async {
-    return [];
+    var records = await db.rawQuery(Sqlite.selectWorkoutsPageAndExercises(), [
+      workoutPageSize,
+      nextWorkoutPageOffset,
+    ]);
+    var hm = HashMap<String, Workout>();
+    for (var r in records) {
+      var workoutsId = r['workouts_id'] as String;
+      hm[workoutsId] ??= Workout(
+          id: workoutsId,
+          date: DateTime.parse(r["date"] as String),
+          exercises: []);
+      hm[workoutsId]!.exercises.add(Exercise.fromMap(r));
+    }
+    nextWorkoutPageOffset += hm.values.length;
+
+    return hm.values;
   }
 
   @override
   Future deleteWorkout(String workoutsId) async {
     await db.delete('workouts', where: 'id = ?', whereArgs: [workoutsId]);
+  }
+
+  @override
+  Future<Exercise> createExercise(CreateExerciseRequest req) async {
+    var id = const Uuid().v4();
+    await db
+        .insert('exercises', {'id': id, 'name': req.name, 'unit': req.unit});
+    return Exercise.fromRequest(id, req);
+  }
+
+  var exercisePageSize = 20;
+  var nextExerciseOffset = 0;
+
+  @override
+  Future<Iterable<Exercise>> getFirstPageOfExercises() {
+    nextExerciseOffset = 0;
+    return getNextPageOfExercises();
+  }
+
+  @override
+  Future<Iterable<Exercise>> getNextPageOfExercises() async {
+    var records = await db.query('exercises',
+        limit: exercisePageSize, offset: nextExerciseOffset);
+    nextExerciseOffset += exercisePageSize;
+    return records.map(Exercise.fromMap);
   }
 }
 
@@ -358,6 +404,24 @@ class RemoteStorage extends Storage with SyntacticSugar {
   @override
   Future deleteWorkout(String workoutsId) {
     // TODO: implement deleteWorkout
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Exercise> createExercise(CreateExerciseRequest req) {
+    // TODO: implement createExercise
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Iterable<Exercise>> getFirstPageOfExercises() {
+    // TODO: implement getFirstPageOfExercises
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Iterable<Exercise>> getNextPageOfExercises() {
+    // TODO: implement getNextPageOfExercises
     throw UnimplementedError();
   }
 }

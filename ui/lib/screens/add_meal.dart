@@ -9,7 +9,7 @@ class AddMealScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32.0),
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 8),
         child: Center(child: MealInput(onCreated: (_) {
           Navigator.of(context).pop();
         })),
