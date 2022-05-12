@@ -3,8 +3,9 @@ import 'package:ui/models/workout.dart';
 
 class ExerciseInput extends StatefulWidget {
   final Function(CreateExerciseRequest) onSubmit;
+  final List<String> supportedUnits = ["kg", "s"];
 
-  const ExerciseInput({required this.onSubmit});
+  ExerciseInput({required this.onSubmit});
 
   @override
   State<ExerciseInput> createState() => _ExerciseInputState();
@@ -15,6 +16,12 @@ class _ExerciseInputState extends State<ExerciseInput> {
   late String name;
   late String unit;
   late int amount;
+
+  @override
+  void initState() {
+    super.initState();
+    unit = widget.supportedUnits.elementAt(0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,17 +41,24 @@ class _ExerciseInputState extends State<ExerciseInput> {
               }
             },
           ),
-          TextFormField(
-            decoration: const InputDecoration(labelText: 'Unit'),
-            onChanged: (value) {
+          NeumorphicToggle(
+            thumb: Neumorphic(
+              style: NeumorphicStyle(
+                  boxShape: NeumorphicBoxShape.roundRect(
+                      const BorderRadius.all(Radius.circular(12)))),
+            ),
+            children: widget.supportedUnits
+                .map((u) => ToggleElement(
+                    background: Center(child: Text(u)),
+                    foreground: Center(
+                      child: Text(u),
+                    )))
+                .toList(),
+            selectedIndex: widget.supportedUnits.indexOf(unit),
+            onChanged: (index) {
               setState(() {
-                unit = value;
+                unit = widget.supportedUnits.elementAt(index);
               });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a valid unit';
-              }
             },
           ),
           NeumorphicButton(

@@ -52,13 +52,15 @@ class MealInputState extends State<MealInput> {
     }
 
     if (amount == null) {
-      return AmountForm(onSubmit: (newAmountGrams) {
-        setState(() {
-          amount = newAmountGrams;
-        });
-        ingredientAmounts.update(ingredient!, (_) => amount!,
-            ifAbsent: () => amount!);
-      });
+      return AmountForm(
+          unit: "g",
+          onSubmit: (newAmountGrams) {
+            setState(() {
+              amount = newAmountGrams;
+            });
+            ingredientAmounts.update(ingredient!, (_) => amount!,
+                ifAbsent: () => amount!);
+          });
     }
 
     return ListView(children: [

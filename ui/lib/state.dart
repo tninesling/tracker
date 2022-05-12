@@ -8,8 +8,10 @@ import 'package:ui/utils/date_builder.dart';
 class AppState with ChangeNotifier {
   final Set<Ingredient> _ingredients =
       HashSet(equals: (p0, p1) => p0.id == p1.id);
-  final Set<Meal> _meals = HashSet(equals: (p0, p1) => p0.id == p1.id);
-  final Set<Workout> _workouts = HashSet(equals: (p0, p1) => p0.id == p1.id);
+  final Set<Meal> _meals = HashSet(
+      equals: (p0, p1) => p0.id == p1.id, hashCode: (m) => m.id.hashCode);
+  final Set<Workout> _workouts = HashSet(
+      equals: (p0, p1) => p0.id == p1.id, hashCode: (h) => h.id.hashCode);
 
   double _weightLbs = 160;
   double _targetCalories = 2000;
@@ -74,4 +76,10 @@ class AppState with ChangeNotifier {
       m.date.year == date.year &&
       m.date.month == date.month &&
       m.date.day == date.day);
+
+  Iterable<Workout> workoutsSortedByDateDesc() {
+    var workouts = _workouts.toList();
+    workouts.sort((a, b) => b.date.compareTo(a.date));
+    return workouts;
+  }
 }

@@ -1,12 +1,23 @@
 class CreateWorkoutRequest {
   final DateTime date;
-  final Map<String, double> exerciseAmounts;
-  final Map<String, int> exerciseOrder;
+  final List<ExerciseReference> exercises;
 
-  CreateWorkoutRequest(
-      {required this.date,
-      required this.exerciseAmounts,
-      required this.exerciseOrder});
+  CreateWorkoutRequest({required this.date, required this.exercises});
+}
+
+class ExerciseReference {
+  final String exerciseId;
+  final String name;
+  final String unit;
+  int order;
+  final double amount;
+
+  ExerciseReference(
+      {required this.exerciseId,
+      required this.name,
+      required this.unit,
+      required this.order,
+      required this.amount});
 }
 
 class CreateExerciseRequest {
@@ -33,6 +44,7 @@ abstract class Exercise {
 
   String unit();
   double amount();
+  bool isRepeated();
 
   Map<String, dynamic> toMap() => {
         'id': id,
@@ -79,10 +91,13 @@ class WeightedExercise extends Exercise {
       : super(id: id, order: order, name: name);
 
   @override
-  String unit() => "g";
+  String unit() => "kg";
 
   @override
   double amount() => weight.inGrams();
+
+  @override
+  bool isRepeated() => true;
 }
 
 class Weight {
@@ -111,6 +126,9 @@ class TimedExercise extends Exercise {
 
   @override
   double amount() => duration.inSeconds.toDouble();
+
+  @override
+  bool isRepeated() => false;
 }
 
 class Rest extends TimedExercise {
@@ -153,6 +171,12 @@ class ExerciseBuilder {
   Exercise build() {
     // TODO: Validate the values
     switch (unit) {
+      case 'kg':
+        return WeightedExercise(
+            id: id!,
+            order: order!,
+            name: name!,
+            weight: Weight(kilograms: amount!));
       case 'g':
         return WeightedExercise(
             id: id!,

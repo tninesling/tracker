@@ -25,6 +25,7 @@ abstract class Storage {
   Future<Iterable<Workout>> getAllWorkouts();
   Future<Iterable<Workout>> getFirstPageOfWorkouts();
   Future<Iterable<Workout>> getNextPageOfWorkouts();
+  Future<Iterable<ExerciseReference>> getMostWeightMovedPerExercise();
 }
 
 mixin SyntacticSugar on Storage {
@@ -98,14 +99,16 @@ class LocalStorage extends Storage with SyntacticSugar {
   @override
   Future<Meal> createMeal(CreateMealRequest req) async {
     var id = const Uuid().v4();
-    await db.insert('meals', {'id': id, 'date': req.date.toIso8601String()});
-    for (var entry in req.ingredientAmounts.entries) {
-      await db.insert('meals_ingredients', {
-        'meals_id': id,
-        'ingredients_id': entry.key,
-        'amount_grams': entry.value
-      });
-    }
+    await db.transaction((txn) async {
+      await txn.insert('meals', {'id': id, 'date': req.date.toIso8601String()});
+      for (var entry in req.ingredientAmounts.entries) {
+        await txn.insert('meals_ingredients', {
+          'meals_id': id,
+          'ingredients_id': entry.key,
+          'amount_grams': entry.value
+        });
+      }
+    });
 
     return (await getMealById(id))!;
   }
@@ -127,9 +130,11 @@ class LocalStorage extends Storage with SyntacticSugar {
   }
 
   @override
-  Future deleteMeal(String mealsId) async {
-    await db.delete('meals', where: 'id = ?', whereArgs: [mealsId]);
-  }
+  Future deleteMeal(String mealsId) => db.transaction((txn) async {
+        await txn.delete('meals', where: 'id = ?', whereArgs: [mealsId]);
+        await txn.delete('meals_ingredients',
+            where: 'meals_id = ?', whereArgs: [mealsId]);
+      });
 
   var mealPageSize = 20;
   var nextMealOffset = 0;
@@ -204,18 +209,19 @@ class LocalStorage extends Storage with SyntacticSugar {
   @override
   Future<Workout> createWorkout(CreateWorkoutRequest req) async {
     var workoutsId = const Uuid().v4();
-    // TODO: wrap in a transaction
-    await db.insert(
-        'workouts', {'id': workoutsId, 'date': req.date.toIso8601String()});
+    await db.transaction((txn) async {
+      await txn.insert(
+          'workouts', {'id': workoutsId, 'date': req.date.toIso8601String()});
 
-    for (var entry in req.exerciseAmounts.entries) {
-      await db.insert('workouts_exercises', {
-        'workouts_id': workoutsId,
-        'exercises_id': entry.key,
-        'amount': entry.value,
-        'workout_order': req.exerciseOrder[entry.key],
-      });
-    }
+      for (var ex in req.exercises) {
+        await txn.insert('workouts_exercises', {
+          'workouts_id': workoutsId,
+          'exercises_id': ex.exerciseId,
+          'amount': ex.amount,
+          'workout_order': ex.order,
+        });
+      }
+    });
 
     return (await getWorkoutById(workoutsId))!;
   }
@@ -266,9 +272,11 @@ class LocalStorage extends Storage with SyntacticSugar {
   }
 
   @override
-  Future deleteWorkout(String workoutsId) async {
-    await db.delete('workouts', where: 'id = ?', whereArgs: [workoutsId]);
-  }
+  Future deleteWorkout(String workoutsId) => db.transaction((txn) async {
+        await txn.delete('workouts', where: 'id = ?', whereArgs: [workoutsId]);
+        await txn.delete('workouts_exercises',
+            where: 'workouts_id = ?', whereArgs: [workoutsId]);
+      });
 
   @override
   Future<Exercise> createExercise(CreateExerciseRequest req) async {
@@ -293,6 +301,22 @@ class LocalStorage extends Storage with SyntacticSugar {
         limit: exercisePageSize, offset: nextExerciseOffset);
     nextExerciseOffset += exercisePageSize;
     return records.map(Exercise.fromMap);
+  }
+
+  @override
+  Future<Iterable<ExerciseReference>> getMostWeightMovedPerExercise() async {
+    var records =
+        await db.rawQuery(Sqlite.selectMostWeightMovedPerExercise(), []);
+    List<ExerciseReference> efs = [];
+    for (var r in records) {
+      efs.add(ExerciseReference(
+          exerciseId: r['id'] as String,
+          name: r['name'] as String,
+          unit: r['unit'] as String,
+          order: 0,
+          amount: r['amount'] as double));
+    }
+    return efs;
   }
 }
 
@@ -422,6 +446,12 @@ class RemoteStorage extends Storage with SyntacticSugar {
   @override
   Future<Iterable<Exercise>> getNextPageOfExercises() {
     // TODO: implement getNextPageOfExercises
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Iterable<ExerciseReference>> getMostWeightMovedPerExercise() {
+    // TODO: implement getMostWeightMovedPerExercise
     throw UnimplementedError();
   }
 }

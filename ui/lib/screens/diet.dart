@@ -2,6 +2,7 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
 import 'package:ui/atoms/day_display.dart';
 import 'package:ui/atoms/time_display.dart';
+import 'package:ui/molecules/screen.dart';
 import 'package:ui/storage.dart';
 import 'package:ui/models/meal.dart';
 import 'package:ui/molecules/bottom_nav.dart';
@@ -28,38 +29,53 @@ class _DietScreenState extends State<DietScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 8.0),
-          child: Consumer<AppState>(builder: (context, state, child) {
-            return ListView(
-              children: [
-                Header(
-                  child: DayDisplay(date: date),
-                  onArrowLeft: () {
-                    setState(() {
-                      date = date.subtract(const Duration(days: 1));
-                      futureMeals = context.read<Storage>().getAllMeals(
-                          DateFilter(
-                              after: date,
-                              before: date.add(const Duration(days: 1))));
-                    });
-                  },
-                  onArrowRight: () {
-                    setState(() {
-                      date = date.add(const Duration(days: 1));
-                      futureMeals = context.read<Storage>().getAllMeals(
-                          DateFilter(
-                              after: date,
-                              before: date.add(const Duration(days: 1))));
-                    });
-                  },
-                ),
-                const Text("Summary",
-                    style:
-                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                FutureBuilder<Iterable<Meal>>(
+  Widget build(BuildContext context) => Screen(
+        body: Consumer<AppState>(builder: (context, state, child) {
+          return ListView(
+            children: [
+              Header(
+                child: DayDisplay(date: date),
+                onArrowLeft: () {
+                  setState(() {
+                    date = date.subtract(const Duration(days: 1));
+                    futureMeals = context.read<Storage>().getAllMeals(
+                        DateFilter(
+                            after: date,
+                            before: date.add(const Duration(days: 1))));
+                  });
+                },
+                onArrowRight: () {
+                  setState(() {
+                    date = date.add(const Duration(days: 1));
+                    futureMeals = context.read<Storage>().getAllMeals(
+                        DateFilter(
+                            after: date,
+                            before: date.add(const Duration(days: 1))));
+                  });
+                },
+              ),
+              const Text("Summary",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              FutureBuilder<Iterable<Meal>>(
+                future: futureMeals,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Text("Error");
+                  }
+
+                  if (!snapshot.hasData) {
+                    return Text("Loading");
+                  }
+
+                  return Indicators(meals: snapshot.data!);
+                },
+              ),
+              const Divider(),
+              const Text("Meals",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              SizedBox(
+                height: 1000,
+                child: FutureBuilder<Iterable<Meal>>(
                   future: futureMeals,
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
@@ -70,40 +86,19 @@ class _DietScreenState extends State<DietScreen> {
                       return Text("Loading");
                     }
 
-                    return Indicators(meals: snapshot.data!);
+                    return ListView.builder(
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) =>
+                          MealRow(meal: snapshot.data!.elementAt(index)),
+                    );
                   },
                 ),
-                const Divider(),
-                const Text("Meals",
-                    style:
-                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                SizedBox(
-                  height: 1000,
-                  child: FutureBuilder<Iterable<Meal>>(
-                    future: futureMeals,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return Text("Error");
-                      }
-
-                      if (!snapshot.hasData) {
-                        return Text("Loading");
-                      }
-
-                      return ListView.builder(
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) =>
-                            MealRow(meal: snapshot.data!.elementAt(index)),
-                      );
-                    },
-                  ),
-                )
-              ],
-            );
-          })),
-      bottomNavigationBar: const BottomNav(currentScreen: Screens.diet),
-    );
-  }
+              )
+            ],
+          );
+        }),
+        screen: Screens.diet,
+      );
 }
 
 class Header extends StatelessWidget {

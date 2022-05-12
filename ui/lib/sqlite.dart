@@ -23,7 +23,7 @@ class Sqlite {
   static String createMealsIngredientsTable() => """
     CREATE TABLE IF NOT EXISTS meals_ingredients(
       meals_id TEXT NOT NULL REFERENCES meals(id) ON DELETE CASCADE,
-      ingredients_id TEXT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+      ingredients_id TEXT NOT NULL REFERENCES ingredients(id),
       amount_grams REAL NOT NULL,
       PRIMARY KEY (meals_id, ingredients_id)
     );
@@ -47,10 +47,10 @@ class Sqlite {
   static String createWorkoutsExercisesTable() => """
     CREATE TABLE IF NOT EXISTS workouts_exercises(
       workouts_id TEXT NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
-      exercises_id TEXT NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
+      exercises_id TEXT NOT NULL REFERENCES exercises(id),
       amount REAL NOT NULL,
       workout_order INTEGER NOT NULL,
-      PRIMARY KEY (workouts_id, exercises_id)
+      PRIMARY KEY (workouts_id, exercises_id, workout_order)
     );
   """;
 
@@ -172,5 +172,30 @@ class Sqlite {
     FROM exercises,
     LIMIT ?
     OFFSET ?
+  """;
+
+  static String selectMostWeightMovedPerExercise() => """
+    WITH totals_by_workout AS (
+      SELECT 
+        exercises_id,
+        SUM(amount) AS amount
+      FROM workouts_exercises 
+      GROUP BY workouts_id, exercises_id
+    ),
+    max_workout_totals AS (
+      SELECT
+        exercises_id,
+        MAX(amount) AS amount
+      FROM totals_by_workout
+      GROUP BY exercises_id
+    )
+    SELECT
+      e.id AS id,
+      e.name AS name,
+      t.amount AS amount,
+      e.unit AS unit
+    FROM max_workout_totals t
+    JOIN exercises e
+    ON t.exercises_id = e.id
   """;
 }

@@ -2,17 +2,13 @@ import 'dart:collection';
 
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:provider/provider.dart';
+import 'package:ui/atoms/integer_input.dart';
+import 'package:ui/atoms/square_icon_button.dart';
 import 'package:ui/storage.dart';
 import 'package:ui/models/workout.dart';
 import 'package:ui/molecules/amount_form.dart';
 import 'package:ui/molecules/datetime_input.dart';
 import 'package:ui/molecules/exercise_selector.dart';
-
-enum WorkoutInputStage {
-  pickDateTime,
-  pickExercise,
-  pickExerciseAmount,
-}
 
 class WorkoutInput extends StatefulWidget {
   final Function(CreateWorkoutRequest) onSubmit;
@@ -27,14 +23,10 @@ class WorkoutInputState extends State<WorkoutInput> {
   DateTime? date;
   Exercise? exercise;
   double? amount;
-  Map<Exercise, double> exerciseAmounts;
-  Map<Exercise, int> exerciseOrder;
+  int? reps;
+  List<ExerciseReference> exercises;
 
-  WorkoutInputState()
-      : exerciseAmounts = HashMap(
-            equals: (i1, i2) => i1.id == i2.id, hashCode: (i) => i.id.hashCode),
-        exerciseOrder = HashMap(
-            equals: (i1, i2) => i1.id == i2.id, hashCode: (i) => i.id.hashCode);
+  WorkoutInputState() : exercises = [];
 
   @override
   Widget build(BuildContext context) {
@@ -50,87 +42,127 @@ class WorkoutInputState extends State<WorkoutInput> {
       return ExerciseSelector(onSelected: (selected) {
         setState(() {
           exercise = selected;
-          exerciseOrder[selected] = exerciseOrder.length;
         });
       });
     }
 
     if (amount == null) {
-      // TODO: Parameterize unit string
-      return AmountForm(onSubmit: (newAmount) {
-        setState(() {
-          amount = newAmount;
-          exerciseAmounts[exercise!] = newAmount;
-        });
-      });
+      return AmountForm(
+          unit: exercise!.unit(),
+          onSubmit: (newAmount) {
+            setState(() {
+              amount = newAmount;
+              exercises.add(ExerciseReference(
+                  exerciseId: exercise!.id,
+                  name: exercise!.name,
+                  unit: exercise!.unit(),
+                  order: exercises.length,
+                  amount: newAmount));
+            });
+          });
     }
 
+    // TODO: Repetition input for exercises where isRepeated() == true
+    // as well as a rollup to show counts in rows instead of all repetitions
+
     return ListView(children: [
-      ...exerciseAmounts.entries.map((entry) {
-        return Row(
-          children: [
-            Expanded(child: Text("${entry.key.name}")),
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                setState(() {
-                  amount = null;
-                });
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                var exerciseToRemove = entry.key;
-                setState(() {
-                  exerciseAmounts.remove(exerciseToRemove);
-                  exerciseOrder.remove(exerciseToRemove);
-                  exerciseOrder = exerciseOrder.map((exercise, order) =>
-                      MapEntry(exercise,
-                          order < exerciseToRemove.order ? order : order - 1));
-                });
-              },
-            ),
-          ],
+      const Text("Exercises",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+      ...exercises.map((e) {
+        return ExerciseRow(
+          exercise: e,
+          onEdit: () {
+            setState(() {
+              amount = null;
+            });
+          },
+          onDelete: () {
+            setState(() {
+              for (var i = e.order + 1; i < exercises.length; i++) {
+                exercises[i].order--;
+              }
+              exercises.removeAt(e.order);
+            });
+          },
         );
       }),
       Row(
         children: [
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: NeumorphicButton(
-                child: const Text("Add Exercise"),
-                onPressed: () {
-                  setState(() {
-                    exercise = null;
-                    amount = null;
-                  });
-                },
-              ),
+            child: AddExerciseButton(
+              onPressed: () {
+                setState(() {
+                  exercise = null;
+                  amount = null;
+                });
+              },
             ),
           ),
+          const SizedBox(
+            width: 8,
+          ),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Consumer<Storage>(
-                builder: (context, storage, child) => NeumorphicButton(
-                    child: const Text("Submit"),
-                    onPressed: () {
-                      widget.onSubmit(CreateWorkoutRequest(
-                        date: date!,
-                        exerciseAmounts: exerciseAmounts.map(
-                            (exercise, amount) =>
-                                MapEntry(exercise.id, amount)),
-                        exerciseOrder: exerciseOrder.map(
-                            (exercise, order) => MapEntry(exercise.id, order)),
-                      ));
-                    }),
-              ),
-            ),
+            child: SubmitButton(onPressed: () {
+              widget.onSubmit(CreateWorkoutRequest(
+                date: date!,
+                exercises: exercises,
+              ));
+            }),
           )
         ],
       ),
     ]);
   }
+}
+
+class ExerciseRow extends StatelessWidget {
+  final ExerciseReference exercise;
+  final Function() onEdit;
+  final Function() onDelete;
+
+  const ExerciseRow(
+      {Key? key,
+      required this.exercise,
+      required this.onEdit,
+      required this.onDelete})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(exercise.name),
+        Text("${exercise.amount} (${exercise.unit})"),
+        SquareIconButton(
+          icon: Icons.edit,
+          onPressed: onEdit,
+        ),
+        SquareIconButton(
+          icon: Icons.delete,
+          onPressed: onDelete,
+        ),
+      ],
+    );
+  }
+}
+
+class AddExerciseButton extends StatelessWidget {
+  final Function() onPressed;
+
+  AddExerciseButton({Key? key, required this.onPressed}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) =>
+      NeumorphicButton(child: const Text("Add Exercise"), onPressed: onPressed);
+}
+
+class SubmitButton extends StatelessWidget {
+  final Function() onPressed;
+
+  SubmitButton({Key? key, required this.onPressed}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) =>
+      NeumorphicButton(child: const Text("Submit"), onPressed: onPressed);
 }
