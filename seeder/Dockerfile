@@ -1,4 +1,4 @@
-FROM rust:1.57-buster as base
+FROM rust:1.65-buster as base
 RUN cargo install cargo-chef
 WORKDIR /app
 
@@ -10,11 +10,8 @@ FROM base AS builder
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --recipe-path recipe.json
 COPY . .
-RUN cargo build --bin server
+RUN cargo build --bin seeder
 
 FROM debian:buster-slim AS runtime
-WORKDIR /app
-COPY --from=builder /app/target/debug/server /usr/local/bin
-ENTRYPOINT [ "/usr/local/bin/server" ]
-
-EXPOSE 8080
+COPY --from=builder /app/target/debug/seeder /usr/local/bin
+CMD [ "/usr/local/bin/seeder" ]

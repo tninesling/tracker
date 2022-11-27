@@ -1,9 +1,7 @@
-mod error;
 mod meals;
-mod storage;
 mod trends;
 
-use crate::error::Error;
+use domain::error::Error;
 use dropshot::endpoint;
 use dropshot::ApiDescription;
 use dropshot::ConfigDropshot;
@@ -30,6 +28,7 @@ pub async fn create_server() -> Result<HttpServerStarter<ApiContext>, String> {
     let config_dropshot: ConfigDropshot = ConfigDropshot {
         bind_address: SocketAddr::from((Ipv4Addr::new(0, 0, 0, 0), 8080)),
         request_body_max_bytes: 1024,
+        tls: None,
     };
     let api = describe_api()?;
     let spec_file = File::create(SPEC_FILE)
@@ -66,8 +65,9 @@ pub fn describe_api() -> Result<ApiDescription<ApiContext>, String> {
 }
 
 pub async fn create_context() -> Result<ApiContext, String> {
+    let connection_uri = std::env::var("PG_CONNECTION_URI").unwrap();
     let db_pool = PgPoolOptions::new()
-        .connect("postgres://root@cockroachdb-public:26257/tracker")
+        .connect(&connection_uri)
         .await
         .map_err(|e| format!("{}", e))?;
 

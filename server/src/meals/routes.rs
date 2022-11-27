@@ -1,11 +1,12 @@
-use crate::meals::CreateIngredientRequest;
-use crate::meals::Ingredient;
-use crate::meals::Meal;
-use crate::storage::Database;
-use crate::storage::Postgres;
 use crate::ApiContext;
 use chrono::DateTime;
 use chrono::Utc;
+use domain::meals::CreateIngredientRequest;
+use domain::meals::CreateMealRequest;
+use domain::meals::Ingredient;
+use domain::meals::Meal;
+use domain::storage::Database;
+use domain::storage::Postgres;
 use dropshot::endpoint;
 use dropshot::EmptyScanParams;
 use dropshot::HttpError;
@@ -23,8 +24,6 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
 use std::sync::Arc;
-
-use super::CreateMealRequest;
 
 #[derive(Deserialize, JsonSchema, Serialize)]
 pub struct OffsetPage {
@@ -83,7 +82,7 @@ pub async fn create_ingredient(
     let db = Postgres::new(&ctx.db_pool);
     let r = req.into_inner();
 
-    let ingredient = super::create_ingredient(&db, &r).await?;
+    let ingredient = domain::meals::create_ingredient(&db, &r).await?;
 
     Ok(HttpResponseCreated(ingredient))
 }
@@ -129,7 +128,7 @@ pub async fn create_meal(
     let db = Postgres::new(&ctx.db_pool);
     let r = req.into_inner();
 
-    let meal = super::create_meal(&db, r).await?;
+    let meal = domain::meals::create_meal(&db, r).await?;
 
     Ok(HttpResponseCreated(meal))
 }

@@ -1,12 +1,11 @@
 mod models;
-pub(crate) mod routes;
 
 pub use models::*;
 
 use crate::error::Result;
 use crate::storage::Database;
 
-async fn create_ingredient<DB>(db: &DB, req: &CreateIngredientRequest) -> Result<Ingredient>
+pub async fn create_ingredient<DB>(db: &DB, req: &CreateIngredientRequest) -> Result<Ingredient>
 where
     DB: Database,
 {
@@ -25,7 +24,7 @@ where
     })
 }
 
-async fn create_meal<DB>(db: &DB, req: CreateMealRequest) -> Result<Meal>
+pub async fn create_meal<DB>(db: &DB, req: CreateMealRequest) -> Result<Meal>
 where
     DB: Database,
 {

@@ -1,5 +1,4 @@
 mod models;
-pub(crate) mod routes;
 
 pub use models::*;
 

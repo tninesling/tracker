@@ -1,8 +1,8 @@
-use crate::storage::Postgres;
-use crate::trends::get_daily_macro_trends_since_date;
-use crate::trends::MacroTrendsQuery;
-use crate::trends::Trend;
 use crate::ApiContext;
+use domain::storage::Postgres;
+use domain::trends::get_daily_macro_trends_since_date;
+use domain::trends::MacroTrendsQuery;
+use domain::trends::Trend;
 use dropshot::endpoint;
 use dropshot::HttpError;
 use dropshot::HttpResponseOk;

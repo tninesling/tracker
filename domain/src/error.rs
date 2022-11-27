@@ -7,6 +7,7 @@ pub enum Error {
     DBError(sqlx::Error),
 }
 
+// TODO: Put behind a dropshot feature
 impl From<Error> for HttpError {
     fn from(val: Error) -> Self {
         match val {

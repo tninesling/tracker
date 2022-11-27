@@ -1,0 +1,60 @@
+services:
+  db:
+    image: "postgres:13.9"
+    environment:
+      - POSTGRES_DB=tracker
+      - POSTGRES_USER=u
+      - POSTGRES_PASSWORD=p
+    networks:
+      - tracker_network
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "--port=5432"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  migrator:
+    build:
+      context: ./migrator
+    environment:
+      - PG_CONNECTION_URI=postgres://u:p@db:5432/tracker
+    networks:
+      - tracker_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  seeder:
+    build:
+      context: ./seeder
+    environment:
+      - PG_CONNECTION_URI=postgres://u:p@db:5432/tracker
+    networks:
+      - tracker_network
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+
+  server:
+    build:
+      context: .
+      dockerfile: ./server/Dockerfile
+    environment:
+      - PG_CONNECTION_URI=postgres://u:p@db:5432/tracker
+    networks:
+      - tracker_network
+    depends_on:
+      seeder:
+        condition: service_completed_successfully
+
+networks:
+  tracker_network:
+    name: tracker_network
+    driver: bridge
+
+volumes:
+  postgres:
+    driver: local

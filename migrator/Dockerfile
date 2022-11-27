@@ -1,4 +1,4 @@
-FROM rust:1.57-buster as base
+FROM rust:1.65-buster as base
 RUN cargo install cargo-chef
 WORKDIR /app
 
@@ -14,6 +14,4 @@ RUN cargo build --bin migrator
 
 FROM debian:buster-slim AS runtime
 COPY --from=builder /app/target/debug/migrator /usr/local/bin
-ENTRYPOINT [ "/usr/local/bin/migrator" ]
-
-EXPOSE 8080
+CMD [ "/usr/local/bin/migrator" ]

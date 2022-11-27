@@ -8,13 +8,16 @@ edition = "2021"
 [dependencies]
 async-trait = "0.1.52"
 chrono = "0.4.19"
-dropshot = "0.6.0"
+dropshot = "0.8.0"
 http = "0.2.0"
 hyper-staticfile = "0.8"
 serde_json = "1.0.74"
 slog = "2.7.0"
 typed-builder = "0.9.1"
 uuid = "0.8.2"
+
+[dependencies.domain]
+path = "../domain"
 
 [dependencies.hyper]
 version = "0.14"

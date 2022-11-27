@@ -5,8 +5,9 @@ static SQL_DIRECTORY: Dir = include_dir!("$CARGO_MANIFEST_DIR/sql");
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    let connection_uri = std::env::var("PG_CONNECTION_URI").unwrap();
     let (client, connection) = tokio_postgres::connect(
-        "host=cockroachdb-public port=26257 user=root dbname=tracker",
+        &connection_uri,
         NoTls,
     )
     .await?;
