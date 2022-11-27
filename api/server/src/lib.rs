@@ -37,7 +37,7 @@ pub async fn create_server() -> Result<HttpServerStarter<ApiContext>, String> {
         .map_err(|e| format!("{}", e))?;
     let mut spec_file = spec_file.into_std().await;
 
-    api.openapi("Heath API", env!("CARGO_PKG_VERSION"))
+    api.openapi("Tracker API", env!("CARGO_PKG_VERSION"))
         .write(&mut spec_file)
         .unwrap();
 
@@ -67,7 +67,7 @@ pub fn describe_api() -> Result<ApiDescription<ApiContext>, String> {
 
 pub async fn create_context() -> Result<ApiContext, String> {
     let db_pool = PgPoolOptions::new()
-        .connect("postgres://root@cockroachdb-public:26257/heath")
+        .connect("postgres://root@cockroachdb-public:26257/tracker")
         .await
         .map_err(|e| format!("{}", e))?;
 

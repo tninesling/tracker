@@ -10,7 +10,7 @@ import 'package:ui/state.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final database =
-      await openDatabase(join(await getDatabasesPath(), 'heath.db'),
+      await openDatabase(join(await getDatabasesPath(), 'tracker.db'),
           onCreate: (db, version) async {
     await db.execute(Sqlite.createIngredientsTable());
     await db.execute(Sqlite.createMealsTable());
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return NeumorphicApp(
       debugShowCheckedModeBanner: false,
-      title: 'Heath',
+      title: 'Tracker',
       themeMode: ThemeMode.light,
       // Color palettes: https://api.flutter.dev/flutter/material/Colors-class.html
       theme: const NeumorphicThemeData(

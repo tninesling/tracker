@@ -1,6 +1,6 @@
-# Heath
+# Tracker
 
-Health without taking an L
+Track personal data and measurable goals
 
 ## Architecture
 
@@ -60,7 +60,7 @@ kubectl run cockroachdb -it \
 -- sql \
 --insecure \
 --host=cockroachdb-public \
---database=heath
+--database=tracker
 ```
 
 #### Seeding the DB
