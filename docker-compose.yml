@@ -5,6 +5,8 @@ services:
       - POSTGRES_DB=tracker
       - POSTGRES_USER=u
       - POSTGRES_PASSWORD=p
+    ports:
+      - "5432:5432"
     networks:
       - tracker_network
     volumes:

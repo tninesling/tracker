@@ -15,7 +15,7 @@ pub struct DailyMacroSummary {
     pub sodium_milligrams: f64,
 }
 
-#[derive(Default, Serialize, JsonSchema)]
+#[derive(Debug, Default, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Trend {
     pub name: String,
@@ -23,14 +23,14 @@ pub struct Trend {
     pub line: Line,
 }
 
-#[derive(Serialize, JsonSchema)]
+#[derive(Debug, Serialize, JsonSchema)]
 pub struct Point {
     pub x: f64,
     pub y: f64,
     pub label: String,
 }
 
-#[derive(Default, Serialize, JsonSchema)]
+#[derive(Debug, Default, Serialize, JsonSchema)]
 pub struct Line {
     pub slope: f64,
     pub intercept: f64,

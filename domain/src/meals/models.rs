@@ -33,7 +33,7 @@ impl CreateIngredientRequest {
     }
 }
 
-#[derive(FromRow, Deserialize, Serialize, JsonSchema, TypedBuilder)]
+#[derive(Debug, FromRow, Deserialize, Serialize, JsonSchema, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct Ingredient {
     pub id: Uuid,
